@@ -105,8 +105,8 @@ wp.loadParse(url, function (error, dataRecords) {
             if (segments.length > 0) {
                 var seismogram = new wp.chart(svgdiv, segments, startDate, endDate);
                 var markers = [];
-                for (var m=0;m<ttimes.length; m++) {
-                  markers.push({ name: ttimes[m].phase, time: new Date(quake.time.getTime()+(ttimes[m].time)*1000) });
+                for (var m=0;m<ttimes.arrivals.length; m++) {
+                  markers.push({ name: ttimes.arrivals[m].phase, time: new Date(quake.time.getTime()+(ttimes.arrivals[m].time)*1000) });
                 }
                 seismogram.appendMarkers(markers);
                 seismogram.draw();
