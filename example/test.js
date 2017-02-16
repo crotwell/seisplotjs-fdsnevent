@@ -69,14 +69,20 @@ var jsclon = -81;
 var pOffset = -120;
 var clockOffset = 0; // set this from server somehow!!!!
     console.log("calc start end: "+quake.time+" "+dur+" "+clockOffset);
-    var arrivals = new traveltime.TraveltimeQuery()
+    new traveltime.TraveltimeQuery()
         .evdepth(quake.depth/1000)
         .evlat(quake.latitude).evlon(quake.longitude)
         .stalat(jsclat).stalon(jsclon)
         .phases('P,PKP,PKIKP,Pdiff,S,Sdiff,SKS,SKIKS,PP,PcP,pP,sS,PKKP,SKKS,PKiKP')
         .query()
         .then(function(ttimes) {
-    var PArrival = new Date(quake.time.getTime()+(ttimes[0].time+pOffset)*1000);
+    var firstP = ttimes.arrivals[0];
+    for (var p=0; p<ttimes.arrivals.length; p++) {
+      if (firstP.time > ttimes.arrivals[p]) {
+        firstP = ttimes.arrivals[p];
+      }
+    }
+    var PArrival = new Date(quake.time.getTime()+(firstP.time+pOffset)*1000);
     var seisDates = wp.calcStartEndDates(PArrival, null, dur, clockOffset);
     var startDate = seisDates.start;
     var endDate = seisDates.end;
