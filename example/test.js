@@ -73,7 +73,7 @@ var clockOffset = 0; // set this from server somehow!!!!
         .evdepth(quake.depth/1000)
         .evlat(quake.latitude).evlon(quake.longitude)
         .stalat(jsclat).stalon(jsclon)
-        .phases('P,PKP,PKIKP,Pdiff,S,Sdiff,SKS,SKIKS,PP,PcP,pP,sS,PKKP,SKKS,PKiKP')
+        .phases('p,P,PKP,PKIKP,Pdiff,s,S,Sdiff,PKP,SKS,SKIKS,PP,PcP,pP,sS,PKKP,SKKS,SS')
         .query()
         .then(function(ttimes) {
     var firstP = ttimes.arrivals[0];
