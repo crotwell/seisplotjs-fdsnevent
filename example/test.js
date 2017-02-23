@@ -16,17 +16,17 @@ wp.d3.select("div.recentQuakesUrl")
 quakeQuery.query().then(function(quakes) {
   wp.d3.select("div.recentQuakes")
     .selectAll("p")
-    .data(quakes)
+    .data(quakes, function(d) {return d.time();})
     .enter() 
     .append("p")
     .text(function(d) {
       return "quake: "
-          +d.time.toISOString()+" "
-          +d.magnitude.value+" "
-          +d.magnitude.type+" "
-          +"("+d.latitude+", "+d.longitude+") "
-          +(d.depth/1000)+"km "
-          +d.description;
+          +d.time().toISOString()+" "
+          +d.magnitude().mag()+" "
+          +d.magnitude().type()+" "
+          +"("+d.latitude()+", "+d.longitude()+") "
+          +(d.depth()/1000)+"km "
+          +d.description();
     })
     .on("click", function(d){
 console.log("click "+d.time);
@@ -40,12 +40,12 @@ console.log("click "+d.time);
         .append("p")
         .text(function(d) {
           return "quake: "
-              +d.time.toISOString()+" "
-              +d.magnitude.value+" "
-              +d.magnitude.type+" "
-              +"("+d.latitude+", "+d.longitude+") "
-              +(d.depth/1000)+"km "
-              +d.description;
+              +d.time().toISOString()+" "
+              +d.magnitude().mag()+" "
+              +d.magnitude().type()+" "
+              +"("+d.latitude()+", "+d.longitude()+") "
+              +(d.depth()/1000)+"km "
+              +d.description();
         });
        plotSeismograms(wp.d3.select("div.seismograms"),
                        "CO", "JSC", "00", "HHZ", d);
@@ -68,10 +68,10 @@ var jsclat = 34;
 var jsclon = -81;
 var pOffset = -120;
 var clockOffset = 0; // set this from server somehow!!!!
-    console.log("calc start end: "+quake.time+" "+dur+" "+clockOffset);
+    console.log("calc start end: "+quake.time()+" "+dur+" "+clockOffset);
     new traveltime.TraveltimeQuery()
-        .evdepth(quake.depth/1000)
-        .evlat(quake.latitude).evlon(quake.longitude)
+        .evdepth(quake.depth()/1000)
+        .evlat(quake.latitude()).evlon(quake.longitude())
         .stalat(jsclat).stalon(jsclon)
         .phases('p,P,PKP,PKIKP,Pdiff,s,S,Sdiff,PKP,SKS,SKIKS,PP,PcP,pP,sS,PKKP,SKKS,SS')
         .query()
@@ -82,7 +82,7 @@ var clockOffset = 0; // set this from server somehow!!!!
         firstP = ttimes.arrivals[p];
       }
     }
-    var PArrival = new Date(quake.time.getTime()+(firstP.time+pOffset)*1000);
+    var PArrival = new Date(quake.time().getTime()+(firstP.time+pOffset)*1000);
     var seisDates = wp.calcStartEndDates(PArrival, null, dur, clockOffset);
     var startDate = seisDates.start;
     var endDate = seisDates.end;
@@ -106,7 +106,7 @@ wp.loadParse(url, function (error, dataRecords) {
                 var seismogram = new wp.chart(svgdiv, segments, startDate, endDate);
                 var markers = [];
                 for (var m=0;m<ttimes.arrivals.length; m++) {
-                  markers.push({ name: ttimes.arrivals[m].phase, time: new Date(quake.time.getTime()+(ttimes.arrivals[m].time)*1000) });
+                  markers.push({ name: ttimes.arrivals[m].phase, time: new Date(quake.time().getTime()+(ttimes.arrivals[m].time)*1000) });
                 }
                 seismogram.appendMarkers(markers);
                 seismogram.draw();
