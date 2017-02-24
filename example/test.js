@@ -76,7 +76,7 @@ console.log("click "+d.time);
               +d.description();
         });
        plotSeismograms(wp.d3.select("div.seismograms"),
-                       "CO", "JSC", "00", "HHZ", d);
+                       "CO", "JSC", "00", "HHZ,HHN,HHE", d);
     });
     
 }, function(reason) {
