@@ -1,44 +1,16 @@
+import * as model from 'seisplotjs-model';
 
 import RSVP from 'rsvp';
 
+export {RSVP, model };
+
+export let QML_NS = 'http://quakeml.org/xmlns/quakeml/1.2';
+export let BED_NS = 'http://quakeml.org/xmlns/bed/1.2';
+export let IRIS_NS = 'http://service.iris.edu/fdsnws/event/1/';
+export let ANSS_NS = 'http://anss.org/xmlns/event/0.1';
+export let ANSS_CATALOG_NS = "http://anss.org/xmlns/catalog/0.1";
+
 export let USGS_HOST = "earthquake.usgs.gov";
-
-export class Quake {
-  constructor() {
-// what is essential???
-  }
-  time(value) {
-    return arguments.length ? (this._time = value, this) : this._time;
-  }
-  latitude(value) {
-    return arguments.length ? (this._latitude = value, this) : this._latitude;
-  }
-  longitude(value) {
-    return arguments.length ? (this._longitude = value, this) : this._longitude;
-  }
-  depth(value) {
-    return arguments.length ? (this._depth = value, this) : this._depth;
-  }
-  description(value) {
-    return arguments.length ? (this._description = value, this) : this._description;
-  }
-  magnitude(value) {
-    return arguments.length ? (this._magnitude = value, this) : this._magnitude;
-  }
-}
-
-export class Magnitude {
-  constructor(mag, type) {
-    this._mag = mag;
-    this._type = type;
-  }
-  mag(value) {
-    return arguments.length ? (this._mag = value, this) : this._mag;
-  }
-  type(value) {
-    return arguments.length ? (this._type = value, this) : this._type;
-  }
-}
 
 export class EventQuery {
   constructor(host) {
@@ -79,38 +51,27 @@ export class EventQuery {
     return arguments.length ? (this._maxLon = value, this) : this._maxLon;
   }
   convertToQuake(qml) {
-    let out = new Quake();
-    out.description(qml.getElementsByTagName('description').item(0)
-        .getElementsByTagName('text').item(0)
-        .textContent);
-    let otimeStr = qml.getElementsByTagName('origin').item(0)
-        .getElementsByTagName('time').item(0)
-        .getElementsByTagName('value').item(0)
-        .textContent;
-    if (! otimeStr.endsWith('Z')) {
-      otimeStr = otimeStr+'Z';
+    let out = new model.Quake();
+    out.description(this._grabFirstElText(this._grabFirstEl(qml, 'description'), 'text'));
+    let otimeStr = this._grabFirstElText(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'time'),'value');
+    if (otimeStr ) {
+      out.time(this.toDateUTC(otimeStr));
+    } else {
+      console.log("origintime is missing..."+out.description());
     }
-    out.time(new Date(Date.parse(otimeStr)));
-    out.latitude(parseFloat(qml.getElementsByTagName('origin').item(0)
-        .getElementsByTagName('latitude').item(0)
-        .getElementsByTagName('value').item(0)
-        .textContent));
-    out.longitude(parseFloat(qml.getElementsByTagName('origin').item(0)
-        .getElementsByTagName('longitude').item(0)
-        .getElementsByTagName('value').item(0)
-        .textContent));
-    out.depth(parseFloat(qml.getElementsByTagName('origin').item(0)
-        .getElementsByTagName('depth').item(0)
-        .getElementsByTagName('value').item(0)
-        .textContent));
-    out.magnitude(new Magnitude(
-      parseFloat(qml.getElementsByTagName('magnitude').item(0)
-        .getElementsByTagName('mag').item(0)
-        .getElementsByTagName('value').item(0)
-        .textContent),
-      qml.getElementsByTagName('magnitude').item(0)
-        .getElementsByTagName('type').item(0)
-        .textContent));
+    out.latitude(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'latitude'), 'value'));
+    out.longitude(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'longitude'), 'value'));
+    out.depth(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'depth'), 'value'));
+    out.magnitude(this.convertToMagnitude(this._grabFirstEl(qml, 'magnitude')));
+    return out;
+  }
+  convertToMagnitude(qml) {
+    let mag = this._grabFirstElFloat(this._grabFirstEl(qml, 'mag'), 'value');
+    let type = this._grabFirstElText(qml, 'type');
+    let out = null;
+    if (mag && type) {
+      out = new model.Magnitude(mag, type);
+    }
     return out;
   }
 
@@ -165,10 +126,47 @@ console.log("convert to quakes promis resolve: "+out.length);
     return url.substr(0, url.length-1); // zap last & or ?
   }
 
+  // these are similar methods as in seisplotjs-fdsnstation
+  // duplicate here to avoid dependency and diff NS, yes that is dumb...
+
+
+  toDateUTC(str) {
+    if (! str.endsWith('Z')) {
+      str = str + 'Z';
+    }
+    return new Date(Date.parse(str));
+  }
+
   /** converts to ISO8601 but removes the trailing Z as FDSN web services 
     do not allow that. */
   toIsoWoZ(date) {
     let out = date.toISOString();
     return out.substring(0, out.length-1);
+  }
+
+  _grabFirstEl(xml, tagName) {
+    if ( ! xml) { return null;}
+    let out = xml.getElementsByTagNameNS(BED_NS, tagName);
+    if (out && out.length > 0) {
+      return out.item(0);
+    } else {
+      return null;
+    }
+  }
+
+  _grabFirstElText(xml, tagName) {
+    let out = this._grabFirstEl(xml, tagName);
+    if (out) {
+      out = out.textContent;
+    }
+    return out;
+  }
+
+  _grabFirstElFloat(xml, tagName) {
+    let out = this._grabFirstElText(xml, tagName);
+    if (out) {
+      out = parseFloat(out);
+    }
+    return out;
   }
 }
