@@ -14,21 +14,49 @@ wp.d3.select("div.recentQuakesUrl")
     .append("p")
     .text("URL: "+quakeQuery.formURL());
 quakeQuery.query().then(function(quakes) {
-  wp.d3.select("div.recentQuakes")
-    .selectAll("p")
-    .data(quakes, function(d) {return d.time();})
-    .enter() 
-    .append("p")
+  var table = wp.d3.select("div.recentQuakes")
+    .select("table");
+  if ( table.empty()) {
+    table = wp.d3.select("div.recentQuakes")
+      .append("table");
+    var th = table.append("thead").append("tr");
+    th.append("th").text("Time");
+    th.append("th").text("Mag");
+    th.append("th").text("Lat,Lon");
+    th.append("th").text("Depth");
+    th.append("th").text("Decription");
+    table.append("tbody");
+  }
+  var tableData = table.select("tbody")
+    .selectAll("tr")
+    .data(quakes, function(d) {return d.time();});
+  tableData.exit().remove();
+ 
+  var tr = tableData
+    .enter()
+    .append("tr");
+  tr.append("td")
     .text(function(d) {
-      return "quake: "
-          +d.time().toISOString()+" "
-          +d.magnitude().mag()+" "
-          +d.magnitude().type()+" "
-          +"("+d.latitude()+", "+d.longitude()+") "
-          +(d.depth()/1000)+"km "
-          +d.description();
-    })
-    .on("click", function(d){
+      return d.time().toISOString();
+      });
+  tr.append("td")
+    .text(function(d) {
+      return d.magnitude().mag()+" "
+          +d.magnitude().type();
+      });
+  tr.append("td")
+    .text(function(d) {
+      return "("+d.latitude()+", "+d.longitude()+")";
+      });
+  tr.append("td")
+    .text(function(d) {
+      return (d.depth()/1000)+"km ";
+      });
+  tr.append("td")
+    .text(function(d) {
+      return d.description();
+      });
+  tr.on("click", function(d){
 console.log("click "+d.time);
       wp.d3.select("div.seismograms")
         .selectAll("p")
@@ -58,6 +86,7 @@ wp.d3.select("div.recentQuakes")
 });
 
 var plotSeismograms = function(div, net, sta, loc, chan, quake) {
+  div.selectAll('div.myseisplot').remove();
   var dur = 900;
   var host = 'service.iris.edu';
   var protocol = 'http:';
