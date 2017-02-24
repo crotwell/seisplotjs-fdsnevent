@@ -7,3 +7,7 @@ path.seispath {
   fill: none;
   stroke-width: 1px;
 }
+
+.markertext polygon {
+  fill: rgba(220,220,220,.4);
+}
