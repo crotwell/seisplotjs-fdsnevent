@@ -50,6 +50,10 @@ export class EventQuery {
   maxLon(value) {
     return arguments.length ? (this._maxLon = value, this) : this._maxLon;
   }
+  includearrivals(value) {
+    return arguments.length ? (this._includearrivals = value, this) : this._includearrivals;
+  }
+  
   convertToQuake(qml) {
     let out = new model.Quake();
     out.description(this._grabFirstElText(this._grabFirstEl(qml, 'description'), 'text'));
@@ -63,6 +67,18 @@ export class EventQuery {
     out.longitude(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'longitude'), 'value'));
     out.depth(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'depth'), 'value'));
     out.magnitude(this.convertToMagnitude(this._grabFirstEl(qml, 'magnitude')));
+    let allPickEls = qml.getElementsByTagNameNS(BED_NS, 'pick');
+    let allPicks = [];
+    for (let pNum=0; pNum < allPickEls.length; pNum++) {
+      allPicks.push(this.convertToPick(allPickEls.item(pNum)));
+    }
+    let allArrivalEls = qml.getElementsByTagNameNS(BED_NS, 'arrival');
+    let allArrivals = [];
+    for ( let aNum=0; aNum < allArrivalEls.length; aNum++) {
+      allArrivals.push(this.convertToArrival(allArrivalEls.item(aNum), allPicks));
+console.log("arrival "+aNum+"  "+allArrivals[aNum].phase()+" "+allArrivals[aNum].pick().stationCode());
+    }
+    out.arrivals(allArrivals);
     return out;
   }
   convertToMagnitude(qml) {
@@ -72,6 +88,24 @@ export class EventQuery {
     if (mag && type) {
       out = new model.Magnitude(mag, type);
     }
+    return out;
+  }
+  convertToArrival(arrivalQML, allPicks) {
+    let pickID = this._grabFirstElText(arrivalQML, 'pickID');
+    let phase = this._grabFirstElText(arrivalQML, 'phase');
+console.log("convertToArrival: "+phase+" "+pickID);
+    return new model.Arrival(phase, allPicks.find(function(p) { return p.publicID() == pickID;}));
+  }
+  convertToPick(pickQML) {
+    let otimeStr = this._grabFirstElText(this._grabFirstEl(pickQML, 'time'),'value');
+    let time = this.toDateUTC(otimeStr);
+    let waveformIDEl = this._grabFirstEl(pickQML, 'waveformID');
+    let netCode = waveformIDEl.getAttribute("networkCode");
+    let stationCode = waveformIDEl.getAttribute("stationCode");
+    let locationCode = waveformIDEl.getAttribute("locationCode");
+    let channelCode = waveformIDEl.getAttribute("channelCode");
+    let out = new model.Pick(time, netCode, stationCode, locationCode, channelCode);
+    out.publicID(pickQML.getAttribute("publicID"));
     return out;
   }
 
@@ -123,6 +157,7 @@ console.log("convert to quakes promis resolve: "+out.length);
     if (this._maxLat) { url = url+"maxlat="+this.maxLat()+"&";}
     if (this._minLon) { url = url+"minlon="+this.minLon()+"&";}
     if (this._maxLon) { url = url+"maxlon="+this.maxLon()+"&";}
+    if (this._includearrivals) { url = url+"includearrivals=true&";}
     return url.substr(0, url.length-1); // zap last & or ?
   }
 
