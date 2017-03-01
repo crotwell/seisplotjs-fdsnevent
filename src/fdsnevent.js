@@ -26,6 +26,9 @@ export class EventQuery {
   host(value) {
     return arguments.length ? (this._host = value, this) : this._host;
   }
+  eventid(value) {
+    return arguments.length ? (this._eventid = value, this) : this._eventid;
+  }
   startTime(value) {
     return arguments.length ? (this._startTime = value, this) : this._startTime;
   }
@@ -56,6 +59,7 @@ export class EventQuery {
   
   convertToQuake(qml) {
     let out = new model.Quake();
+    out.eventid(this.extractEventId(qml));
     out.description(this._grabFirstElText(this._grabFirstEl(qml, 'description'), 'text'));
     let otimeStr = this._grabFirstElText(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'time'),'value');
     if (otimeStr ) {
@@ -76,10 +80,22 @@ export class EventQuery {
     let allArrivals = [];
     for ( let aNum=0; aNum < allArrivalEls.length; aNum++) {
       allArrivals.push(this.convertToArrival(allArrivalEls.item(aNum), allPicks));
-console.log("arrival "+aNum+"  "+allArrivals[aNum].phase()+" "+allArrivals[aNum].pick().stationCode());
+console.log("arrival "+aNum+"  "+allArrivals[aNum].phase()+" "+allArrivals[aNum].pick().time()+" "+allArrivals[aNum].pick().stationCode());
     }
     out.arrivals(allArrivals);
     return out;
+  }
+  extractEventId(qml) {
+    let eventid = qml.getAttributeNS(ANSS_CATALOG_NS, 'eventid');
+    if (eventid) { return eventid; }
+    let publicid = qml.getAttribute('publicID');
+    let re = /eventid=([\w\d]+)/;
+    let parsed = re.exec(publicid);
+    if (parsed) { return parsed[1];}
+    re = /evid=([\w\d]+)/;
+    parsed = re.exec(publicid);
+    if (parsed) { return parsed[1];}
+    throw new Error("Unable to find eventid for publicID="+publicid);
   }
   convertToMagnitude(qml) {
     let mag = this._grabFirstElFloat(this._grabFirstEl(qml, 'mag'), 'value');
@@ -149,6 +165,7 @@ console.log("convert to quakes promis resolve: "+out.length);
 
   formURL() {
     let url = this.protocol()+"://"+this.host()+"/fdsnws/event/1/query?";
+    if (this._eventid) { url = url+"eventid="+this.eventid()+"&";}
     if (this._startTime) { url = url+"starttime="+this.toIsoWoZ(this.startTime())+"&";}
     if (this._endTime) { url = url+"endtime="+this.toIsoWoZ(this.endTime())+"&";}
     if (this._minMag) { url = url+"minmag="+this.minMag()+"&";}
