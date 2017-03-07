@@ -14,7 +14,7 @@ export let USGS_HOST = "earthquake.usgs.gov";
 
 export class EventQuery {
   constructor(host) {
-    this._protocol = 'http';
+    this._protocol = 'http:';
     this._host = host;
     if (! host) {
       this._host = USGS_HOST;
@@ -80,14 +80,21 @@ export class EventQuery {
     let allArrivals = [];
     for ( let aNum=0; aNum < allArrivalEls.length; aNum++) {
       allArrivals.push(this.convertToArrival(allArrivalEls.item(aNum), allPicks));
-console.log("arrival "+aNum+"  "+allArrivals[aNum].phase()+" "+allArrivals[aNum].pick().time()+" "+allArrivals[aNum].pick().stationCode());
     }
     out.arrivals(allArrivals);
     return out;
   }
   extractEventId(qml) {
     let eventid = qml.getAttributeNS(ANSS_CATALOG_NS, 'eventid');
-    if (eventid) { return eventid; }
+    let catalogEventSource = qml.getAttributeNS(ANSS_CATALOG_NS, 'eventsource');
+    if (eventid) { 
+      if (catalogEventSource) {
+        // USGS, NCEDC and SCEDC use concat of eventsource and eventid as eventit, sigh...
+        return catalogEventSource+eventid;
+      } else {
+        return eventid;
+      }
+    }
     let publicid = qml.getAttribute('publicID');
     let re = /eventid=([\w\d]+)/;
     let parsed = re.exec(publicid);
@@ -109,7 +116,6 @@ console.log("arrival "+aNum+"  "+allArrivals[aNum].phase()+" "+allArrivals[aNum]
   convertToArrival(arrivalQML, allPicks) {
     let pickID = this._grabFirstElText(arrivalQML, 'pickID');
     let phase = this._grabFirstElText(arrivalQML, 'phase');
-console.log("convertToArrival: "+phase+" "+pickID);
     return new model.Arrival(phase, allPicks.find(function(p) { return p.publicID() == pickID;}));
   }
   convertToPick(pickQML) {
@@ -127,7 +133,6 @@ console.log("convertToArrival: "+phase+" "+pickID);
 
   query() {
     let mythis = this;
-//      return new RSVP.Promise(function(resolve, reject) {
     return this.queryRawXml().then(function(rawXml) {
         let top = rawXml.documentElement;
         let eventArray = top.getElementsByTagName("event");
@@ -135,10 +140,7 @@ console.log("convertToArrival: "+phase+" "+pickID);
         for (let i=0; i<eventArray.length; i++) {
           out[i] = mythis.convertToQuake(eventArray.item(i));
         }
-console.log("convert to quakes promis resolve: "+out.length);
         return out;
-//resolve( out);
-//      });
     });
   }
 
@@ -155,8 +157,113 @@ console.log("convert to quakes promis resolve: "+out.length);
 
       function handler() {
         if (this.readyState === this.DONE) {
+          console.log("handle: "+mythis.host()+" "+this.status);
           if (this.status === 200) { resolve(this.responseXML); }
-          else { reject(this); }
+          else { 
+            console.log("Reject: "+mythis.host()+" "+this.status);reject(this); }
+        }
+      }
+    });
+    return promise;
+  }
+
+
+  formBaseURL() {
+      let colon = ":";
+      if (this.protocol().endsWith(colon)) {
+        colon = "";
+      }      return this.protocol()+colon+"//"+this.host()+"/fdsnws/event/1";
+  }
+
+  formCatalogsURL() {
+    return this.formBaseURL()+"/catalogs";
+  }
+  queryCatalogs() {
+    let mythis = this;
+    let promise = new RSVP.Promise(function(resolve, reject) {
+      let url = mythis.formCatalogsURL();
+      let client = new XMLHttpRequest();
+      client.open("GET", url);
+      client.onreadystatechange = handler;
+      client.responseType = "document";
+      client.setRequestHeader("Accept", "application/xml");
+      client.send();
+
+      function handler() {
+        if (this.readyState === this.DONE) {
+          console.log("handle catalogs: "+mythis.host()+" "+this.status);
+          if (this.status === 200) { resolve(this.response); }
+          else {
+            console.log("Reject catalogs: "+mythis.host()+" "+this.status);reject(this); }
+        }
+      }
+    });
+    return promise.then(function(rawXml) {
+        let top = rawXml.documentElement;
+        let catalogArray = top.getElementsByTagName("Catalog");
+        let out = [];
+        for (let i=0; i<catalogArray.length; i++) {
+          out[i] = catalogArray.item(i).textContent;
+        }
+        return out;
+    });
+  }
+
+  formContributorsURL() {
+    return this.formBaseURL()+"/contributors";
+  }
+  queryContributors() {
+    let mythis = this;
+    let promise = new RSVP.Promise(function(resolve, reject) {
+      let url = mythis.formContributorsURL();
+      let client = new XMLHttpRequest();
+      client.open("GET", url);
+      client.onreadystatechange = handler;
+      client.responseType = "document";
+      client.setRequestHeader("Accept", "application/xml");
+      client.send();
+
+      function handler() {
+        if (this.readyState === this.DONE) {
+          console.log("handle contributors: "+mythis.host()+" "+this.status);
+          if (this.status === 200) { resolve(this.response); }
+          else {
+            console.log("Reject contributors: "+mythis.host()+" "+this.status);reject(this); }
+        }
+      }
+    });
+    return promise.then(function(rawXml) {
+        let top = rawXml.documentElement;
+        let contribArray = top.getElementsByTagName("Contributor");
+        let out = [];
+        for (let i=0; i<contribArray.length; i++) {
+          out[i] = contribArray.item(i).textContent;
+        }
+        return out;
+    });
+  }
+
+  formVersionURL() {
+    return this.formBaseURL()+"/version";
+  }
+
+  queryVersion() {
+    let mythis = this;
+    let promise = new RSVP.Promise(function(resolve, reject) {
+      let url = mythis.formVersionURL();
+      let client = new XMLHttpRequest();
+      client.open("GET", url);
+      client.onreadystatechange = handler;
+      client.responseType = "text";
+      client.setRequestHeader("Accept", "text/plain");
+      client.send();
+
+      function handler() {
+        if (this.readyState === this.DONE) {
+          console.log("handle version: "+mythis.host()+" "+this.status);
+          if (this.status === 200) { resolve(this.response); }
+          else {
+            console.log("Reject version: "+mythis.host()+" "+this.status);reject(this); }
         }
       }
     });
@@ -164,7 +271,11 @@ console.log("convert to quakes promis resolve: "+out.length);
   }
 
   formURL() {
-    let url = this.protocol()+"://"+this.host()+"/fdsnws/event/1/query?";
+    let colon = ":";
+    if (this.protocol().endsWith(colon)) {
+      colon = "";
+    }
+    let url = this.formBaseURL()+"/query?";
     if (this._eventid) { url = url+"eventid="+this.eventid()+"&";}
     if (this._startTime) { url = url+"starttime="+this.toIsoWoZ(this.startTime())+"&";}
     if (this._endTime) { url = url+"endtime="+this.toIsoWoZ(this.endTime())+"&";}
@@ -174,7 +285,19 @@ console.log("convert to quakes promis resolve: "+out.length);
     if (this._maxLat) { url = url+"maxlat="+this.maxLat()+"&";}
     if (this._minLon) { url = url+"minlon="+this.minLon()+"&";}
     if (this._maxLon) { url = url+"maxlon="+this.maxLon()+"&";}
-    if (this._includearrivals) { url = url+"includearrivals=true&";}
+    if (this._includearrivals) { 
+      if (this.host() != USGS_HOST) {
+        url = url+"includearrivals=true&";
+      } else {
+        // USGS does not support includearrivals, but does actually
+        // include the arrivals for an eventid= style query
+        if (this._eventid) {
+          // ok, works without the param
+        } else {
+          throw new Error("USGS host, earthquake.usgs.gov, does not support includearrivals parameter.");
+        }
+      }
+    }
     return url.substr(0, url.length-1); // zap last & or ?
   }
 
