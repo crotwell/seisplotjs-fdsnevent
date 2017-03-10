@@ -12,6 +12,8 @@ export let ANSS_CATALOG_NS = "http://anss.org/xmlns/catalog/0.1";
 
 export let USGS_HOST = "earthquake.usgs.gov";
 
+export const FAKE_EMPTY_XML = '<?xml version="1.0"?><q:quakeml xmlns="http://quakeml.org/xmlns/bed/1.2" xmlns:q="http://quakeml.org/xmlns/quakeml/1.2"><eventParameters publicID="quakeml:fake/empty"></eventParameters></q:quakeml>';
+
 export class EventQuery {
   constructor(host) {
     this._protocol = 'http:';
@@ -159,9 +161,19 @@ export class EventQuery {
       function handler() {
         if (this.readyState === this.DONE) {
           console.log("handle: "+mythis.host()+" "+this.status);
-          if (this.status === 200) { resolve(this.responseXML); }
-          else { 
-            console.log("Reject: "+mythis.host()+" "+this.status);reject(this); }
+          if (this.status === 200) {
+            resolve(this.responseXML);
+          } else if (this.status === 204 || this.status === 404) {
+            // 204 is nodata, so successful but empty
+            if (DOMParser) {
+console.log("204 nodata so return empty xml");
+              resolve(new DOMParser().parseFromString(FAKE_EMPTY_XML, "text/xml"));
+            } else {
+              throw new Error("Got 204 but can't find DOMParser to generate empty xml");
+            }
+          } else { 
+            console.log("Reject: "+mythis.host()+" "+this.status);reject(this); 
+          }
         }
       }
     });
@@ -193,9 +205,11 @@ export class EventQuery {
       function handler() {
         if (this.readyState === this.DONE) {
           console.log("handle catalogs: "+mythis.host()+" "+this.status);
-          if (this.status === 200) { resolve(this.response); }
-          else {
-            console.log("Reject catalogs: "+mythis.host()+" "+this.status);reject(this); }
+          if (this.status === 200) {
+            resolve(this.response);
+          } else {
+            reject(this);
+          }
         }
       }
     });

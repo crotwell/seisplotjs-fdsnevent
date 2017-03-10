@@ -14,6 +14,11 @@ wp.d3.select("div.recentQuakesUrl")
     .append("p")
     .text("URL: "+quakeQuery.formURL());
 quakeQuery.query().then(function(quakes) {
+  if (quakes.length == 0) {
+    wp.d3.select("div.recentQuakesUrl")
+      .append("p")
+      .text("Zero quakes returned... Sorry. ");
+  }
   var table = wp.d3.select("div.recentQuakes")
     .select("table");
   if ( table.empty()) {
