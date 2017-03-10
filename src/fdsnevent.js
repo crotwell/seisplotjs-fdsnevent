@@ -59,7 +59,7 @@ export class EventQuery {
   
   convertToQuake(qml) {
     let out = new model.Quake();
-    out.eventid(this.extractEventId(qml));
+    out.publicID = qml.getAttribute('publicID');
     out.description(this._grabFirstElText(this._grabFirstEl(qml, 'description'), 'text'));
     let otimeStr = this._grabFirstElText(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'time'),'value');
     if (otimeStr ) {
@@ -82,13 +82,14 @@ export class EventQuery {
       allArrivals.push(this.convertToArrival(allArrivalEls.item(aNum), allPicks));
     }
     out.arrivals(allArrivals);
+    out.eventid = this.extractEventId(qml);
     return out;
   }
   extractEventId(qml) {
     let eventid = qml.getAttributeNS(ANSS_CATALOG_NS, 'eventid');
     let catalogEventSource = qml.getAttributeNS(ANSS_CATALOG_NS, 'eventsource');
     if (eventid) { 
-      if (catalogEventSource) {
+      if (this.host() === USGS_HOST && catalogEventSource) {
         // USGS, NCEDC and SCEDC use concat of eventsource and eventid as eventit, sigh...
         return catalogEventSource+eventid;
       } else {
@@ -270,21 +271,25 @@ export class EventQuery {
     return promise;
   }
 
+  makeParam(name, val) {
+    return name+"="+encodeURIComponent(val)+"&";
+  }
+
   formURL() {
     let colon = ":";
     if (this.protocol().endsWith(colon)) {
       colon = "";
     }
     let url = this.formBaseURL()+"/query?";
-    if (this._eventid) { url = url+"eventid="+this.eventid()+"&";}
-    if (this._startTime) { url = url+"starttime="+this.toIsoWoZ(this.startTime())+"&";}
-    if (this._endTime) { url = url+"endtime="+this.toIsoWoZ(this.endTime())+"&";}
-    if (this._minMag) { url = url+"minmag="+this.minMag()+"&";}
-    if (this._maxMag) { url = url+"maxmag="+this.maxMag()+"&";}
-    if (this._minLat) { url = url+"minlat="+this.minLat()+"&";}
-    if (this._maxLat) { url = url+"maxlat="+this.maxLat()+"&";}
-    if (this._minLon) { url = url+"minlon="+this.minLon()+"&";}
-    if (this._maxLon) { url = url+"maxlon="+this.maxLon()+"&";}
+    if (this._eventid) { url = url+this.makeParam("eventid", this.eventid());}
+    if (this._startTime) { url = url+this.makeParam("starttime", this.toIsoWoZ(this.startTime()));}
+    if (this._endTime) { url = url+this.makeParam("endtime", this.toIsoWoZ(this.endTime()));}
+    if (this._minMag) { url = url+this.makeParam("minmag", this.minMag());}
+    if (this._maxMag) { url = url+this.makeParam("maxmag", this.maxMag());}
+    if (this._minLat) { url = url+this.makeParam("minlat", this.minLat());}
+    if (this._maxLat) { url = url+this.makeParam("maxlat", this.maxLat());}
+    if (this._minLon) { url = url+this.makeParam("minlon", this.minLon());}
+    if (this._maxLon) { url = url+this.makeParam("maxlon", this.maxLon());}
     if (this._includearrivals) { 
       if (this.host() != USGS_HOST) {
         url = url+"includearrivals=true&";
@@ -298,7 +303,10 @@ export class EventQuery {
         }
       }
     }
-    return url.substr(0, url.length-1); // zap last & or ?
+    if (url.endsWith('&') || url.endsWith('?')) {
+      url = url.substr(0, url.length-1); // zap last & or ?
+    }
+    return url;
   }
 
   // these are similar methods as in seisplotjs-fdsnstation
