@@ -16,17 +16,24 @@ export const FAKE_EMPTY_XML = '<?xml version="1.0"?><q:quakeml xmlns="http://qua
 
 export class EventQuery {
   constructor(host) {
+    this._specVersion = 1;
     this._protocol = 'http:';
     this._host = host;
     if (! host) {
       this._host = USGS_HOST;
     }
   }
+  specVersion(value) {
+    return arguments.length ? (this._specVersion = value, this) : this._specVersion;
+  }
   protocol(value) {
     return arguments.length ? (this._protocol = value, this) : this._protocol;
   }
   host(value) {
     return arguments.length ? (this._host = value, this) : this._host;
+  }
+  nodata(value) {
+    return arguments.length ? (this._nodata = value, this) : this._nodata;
   }
   eventid(value) {
     return arguments.length ? (this._eventid = value, this) : this._eventid;
@@ -163,7 +170,8 @@ export class EventQuery {
           console.log("handle: "+mythis.host()+" "+this.status);
           if (this.status === 200) {
             resolve(this.responseXML);
-          } else if (this.status === 204 || this.status === 404) {
+          } else if (this.status === 204 || (mythis.nodata() && this.status === mythis.nodata())) {
+
             // 204 is nodata, so successful but empty
             if (DOMParser) {
 console.log("204 nodata so return empty xml");
@@ -185,7 +193,7 @@ console.log("204 nodata so return empty xml");
       let colon = ":";
       if (this.protocol().endsWith(colon)) {
         colon = "";
-      }      return this.protocol()+colon+"//"+this.host()+"/fdsnws/event/1";
+      }      return this.protocol()+colon+"//"+this.host()+"/fdsnws/event/"+this.specVersion();
   }
 
   formCatalogsURL() {
