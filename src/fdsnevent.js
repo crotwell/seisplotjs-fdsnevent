@@ -112,7 +112,8 @@ export class EventQuery {
     re = /evid=([\w\d]+)/;
     parsed = re.exec(publicid);
     if (parsed) { return parsed[1];}
-    throw new Error("Unable to find eventid for publicID="+publicid);
+//    throw new Error("Unable to find eventid for publicID="+publicid);
+    return null;
   }
   convertToMagnitude(qml) {
     let mag = this._grabFirstElFloat(this._grabFirstEl(qml, 'mag'), 'value');
@@ -144,14 +145,18 @@ export class EventQuery {
   query() {
     let mythis = this;
     return this.queryRawXml().then(function(rawXml) {
-        let top = rawXml.documentElement;
-        let eventArray = top.getElementsByTagName("event");
-        let out = [];
-        for (let i=0; i<eventArray.length; i++) {
-          out[i] = mythis.convertToQuake(eventArray.item(i));
-        }
-        return out;
+        return mythis.parseQuakeML(rawXml);
     });
+  }
+
+  parseQuakeML(rawXml) {
+    let top = rawXml.documentElement;
+    let eventArray = top.getElementsByTagName("event");
+    let out = [];
+    for (let i=0; i<eventArray.length; i++) {
+      out[i] = this.convertToQuake(eventArray.item(i));
+    }
+    return out;
   }
 
   queryRawXml() {
@@ -161,7 +166,7 @@ export class EventQuery {
       let url = mythis.formURL();
       client.open("GET", url);
       client.onreadystatechange = handler;
-      client.responseType = "document";
+      client.responseType = "text";
       client.setRequestHeader("Accept", "application/xml");
       client.send();
 
@@ -169,7 +174,10 @@ export class EventQuery {
         if (this.readyState === this.DONE) {
           console.log("handle: "+mythis.host()+" "+this.status);
           if (this.status === 200) {
-            resolve(this.responseXML);
+            let out = new DOMParser().parseFromString(this.response, "text/xml");
+            out.url = url;
+            resolve(out);
+//            resolve(this.responseXML);
           } else if (this.status === 204 || (mythis.nodata() && this.status === mythis.nodata())) {
 
             // 204 is nodata, so successful but empty
@@ -297,6 +305,10 @@ console.log("204 nodata so return empty xml");
     return name+"="+encodeURIComponent(val)+"&";
   }
 
+  _isDef(v) {
+    return v || v === 0;
+  }
+
   formURL() {
     let colon = ":";
     if (this.protocol().endsWith(colon)) {
@@ -306,12 +318,12 @@ console.log("204 nodata so return empty xml");
     if (this._eventid) { url = url+this.makeParam("eventid", this.eventid());}
     if (this._startTime) { url = url+this.makeParam("starttime", this.toIsoWoZ(this.startTime()));}
     if (this._endTime) { url = url+this.makeParam("endtime", this.toIsoWoZ(this.endTime()));}
-    if (this._minMag) { url = url+this.makeParam("minmag", this.minMag());}
-    if (this._maxMag) { url = url+this.makeParam("maxmag", this.maxMag());}
-    if (this._minLat) { url = url+this.makeParam("minlat", this.minLat());}
-    if (this._maxLat) { url = url+this.makeParam("maxlat", this.maxLat());}
-    if (this._minLon) { url = url+this.makeParam("minlon", this.minLon());}
-    if (this._maxLon) { url = url+this.makeParam("maxlon", this.maxLon());}
+    if (this._isDef(this._minMag)) { url = url+this.makeParam("minmag", this.minMag());}
+    if (this._isDef(this._maxMag)) { url = url+this.makeParam("maxmag", this.maxMag());}
+    if (this._isDef(this._minLat)) { url = url+this.makeParam("minlat", this.minLat());}
+    if (this._isDef(this._maxLat)) { url = url+this.makeParam("maxlat", this.maxLat());}
+    if (this._isDef(this._minLon)) { url = url+this.makeParam("minlon", this.minLon());}
+    if (this._isDef(this._maxLon)) { url = url+this.makeParam("maxlon", this.maxLon());}
     if (this._includearrivals) { 
       if (this.host() != USGS_HOST) {
         url = url+"includearrivals=true&";
