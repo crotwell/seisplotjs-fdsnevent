@@ -4,7 +4,8 @@
   "description": "Querying and parsing of output of FDSN Event web service for Earthquake locations.",
   "main": "./lib/fdsnevent.js",
   "dependencies": {
-    "rsvp": "^3.3.3"
+    "rsvp": "^3.3.3",
+    "seisplotjs-model": "^0.0.1"
   },
   "scripts": {
     "lint": "eslint 'src/*.js'",
