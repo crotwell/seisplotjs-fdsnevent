@@ -1,17 +1,17 @@
 {
   "name": "seisplotjs-fdsnevent",
-  "version": "0.0.1-SNAPSHOT",
+  "version": "1.0.0",
   "description": "Querying and parsing of output of FDSN Event web service for Earthquake locations.",
   "main": "./lib/fdsnevent.js",
   "dependencies": {
-    "rsvp": "^3.3.3",
-    "seisplotjs-model": "^0.0.1"
+    "rsvp": "^3.5.0",
+    "seisplotjs-model": "^1.0.0"
   },
   "scripts": {
     "lint": "eslint 'src/*.js'",
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "babel --presets es2015 -d lib/ src/",
-    "standalone": "browserify src/fdsnevent.js --standalone seisplotjs_fdsnevent -o seisplotjs_fdsnevent_01s_standalone.js -t [ babelify --presets [ es2015 ] ]",
+    "standalone": "browserify src/fdsnevent.js --standalone seisplotjs_fdsnevent -o seisplotjs_fdsnevent_100_standalone.js -t [ babelify --presets [ es2015 ] ]",
     "prepublish": "npm run compile"
   },
   "repository": {
