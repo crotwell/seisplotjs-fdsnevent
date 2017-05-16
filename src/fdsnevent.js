@@ -91,7 +91,7 @@ export class EventQuery {
       allArrivals.push(this.convertToArrival(allArrivalEls.item(aNum), allPicks));
     }
     out.arrivals(allArrivals);
-    out.eventid = this.extractEventId(qml);
+    out.eventid(this.extractEventId(qml));
     return out;
   }
   extractEventId(qml) {
