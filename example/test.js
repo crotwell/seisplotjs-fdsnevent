@@ -40,6 +40,14 @@ quakeQuery.query().then(function(quakes) {
   var tr = tableData
     .enter()
     .append("tr");
+
+  tr.append("td")
+    .append("button")
+    .text("Plot")
+    .on("click", function(d) {
+      console.log("click "+d.time());
+      plotEarthquake(d);
+    });
   tr.append("td")
     .text(function(d) {
       return d.time().toISOString();
@@ -61,14 +69,20 @@ quakeQuery.query().then(function(quakes) {
     .text(function(d) {
       return d.description();
       });
-  tr.on("click", function(d){
-console.log("click "+d.time);
+    
+}, function(reason) {
+wp.d3.select("div.recentQuakes")
+    .append("p")
+    .text("Reject: "+reason);
+});
+
+var plotEarthquake = function(eq) {
       wp.d3.select("div.seismograms")
         .selectAll("p")
         .remove();
       wp.d3.select("div.seismograms")
         .selectAll("p")
-        .data([d])
+        .data([eq])
         .enter()
         .append("p")
         .text(function(d) {
@@ -81,14 +95,9 @@ console.log("click "+d.time);
               +d.description();
         });
        plotSeismograms(wp.d3.select("div.seismograms"),
-                       "CO", "JSC", "00", "HHZ,HHN,HHE", d);
-    });
-    
-}, function(reason) {
-wp.d3.select("div.recentQuakes")
-    .append("p")
-    .text("Reject: "+reason);
-});
+                       "CO", "JSC", "00", "HHZ,HHN,HHE", eq);
+
+}
 
 var plotSeismograms = function(div, net, sta, loc, chan, quake) {
   div.selectAll('div.myseisplot').remove();
