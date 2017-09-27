@@ -36,7 +36,7 @@ quakeQuery.query().then(function(quakes) {
     .selectAll("tr")
     .data(quakes, function(d) {return d.time();});
   tableData.exit().remove();
- 
+
   var tr = tableData
     .enter()
     .append("tr");
@@ -69,7 +69,7 @@ quakeQuery.query().then(function(quakes) {
     .text(function(d) {
       return d.description();
       });
-    
+
 }, function(reason) {
 wp.d3.select("div.recentQuakes")
     .append("p")
@@ -136,13 +136,15 @@ console.log("Data request: "+url);
 wp.loadParse(url, function (error, dataRecords) {
       if (error) {
         div.append('p').html("Error loading data." );
+      } else if (dataRecords.length == 0) {
+        div.append('p').html("No seismograms returned." );
       } else {
           div.selectAll('div.myseisplot').remove();
           var byChannel = wp.miniseed.byChannel(dataRecords);
-          var keys = Object.keys(byChannel);
-          for (var i = 0; i < keys.length; i++) {
-            var key = keys[i];
-            var segments = wp.miniseed.merge(byChannel[key]);
+          var keys = Array.from(byChannel.keys());
+          console.log("Got "+dataRecords.length+" data records for "+keys.length+" channels");
+          for (var key of byChannel.keys()) {
+            var segments = wp.miniseed.merge(byChannel.get(key));
             div.append('p').html('Plot for ' + key);
             var svgdiv = div.append('div').attr('class', 'myseisplot');
             if (segments.length > 0) {
@@ -162,4 +164,3 @@ wp.loadParse(url, function (error, dataRecords) {
     });
     });
 }
-
