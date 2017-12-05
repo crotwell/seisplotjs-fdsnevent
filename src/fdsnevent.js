@@ -4,6 +4,8 @@ import RSVP from 'rsvp';
 
 export {RSVP, model };
 
+export const moment = model.moment;
+
 export let QML_NS = 'http://quakeml.org/xmlns/quakeml/1.2';
 export let BED_NS = 'http://quakeml.org/xmlns/bed/1.2';
 export let IRIS_NS = 'http://service.iris.edu/fdsnws/event/1/';
@@ -39,10 +41,10 @@ export class EventQuery {
     return arguments.length ? (this._eventid = value, this) : this._eventid;
   }
   startTime(value) {
-    return arguments.length ? (this._startTime = value, this) : this._startTime;
+    return arguments.length ? (this._startTime = model.checkStringOrDate(value), this) : this._startTime;
   }
   endTime(value) {
-    return arguments.length ? (this._endTime = value, this) : this._endTime;
+    return arguments.length ? (this._endTime = model.checkStringOrDate(value), this) : this._endTime;
   }
   minMag(value) {
     return arguments.length ? (this._minMag = value, this) : this._minMag;
@@ -62,17 +64,29 @@ export class EventQuery {
   maxLon(value) {
     return arguments.length ? (this._maxLon = value, this) : this._maxLon;
   }
+  latitude(value) {
+    return arguments.length ? (this._latitude = value, this) : this._latitude;
+  }
+  longitude(value) {
+    return arguments.length ? (this._longitude = value, this) : this._longitude;
+  }
+  minRadius(value) {
+    return arguments.length ? (this._minRadius = value, this) : this._minRadius;
+  }
+  maxRadius(value) {
+    return arguments.length ? (this._maxRadius = value, this) : this._maxRadius;
+  }
   includearrivals(value) {
     return arguments.length ? (this._includearrivals = value, this) : this._includearrivals;
   }
-  
+
   convertToQuake(qml) {
     let out = new model.Quake();
     out.publicID = qml.getAttribute('publicID');
     out.description(this._grabFirstElText(this._grabFirstEl(qml, 'description'), 'text'));
     let otimeStr = this._grabFirstElText(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'time'),'value');
     if (otimeStr ) {
-      out.time(this.toDateUTC(otimeStr));
+      out.time(otimeStr);
     } else {
       console.log("origintime is missing..."+out.description());
     }
@@ -80,6 +94,16 @@ export class EventQuery {
     out.longitude(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'longitude'), 'value'));
     out.depth(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'depth'), 'value'));
     out.magnitude(this.convertToMagnitude(this._grabFirstEl(qml, 'magnitude')));
+    let allOriginEls = qml.getElementsByTagNameNS(BED_NS, "origin");
+    let allOrigins = [];
+    for (let oNum=0; oNum < allOriginEls.length; oNum++) {
+      allOrigins.push(this.convertToOrigin(allOriginEls.item(oNum)));
+    }
+    let allMagEls = qml.getElementsByTagNameNS(BED_NS, "magnitude");
+    let allMags = [];
+    for (let mNum=0; mNum < allMagEls.length; mNum++) {
+      allMags.push(this.convertToMagnitude(allMagEls.item(mNum)));
+    }
     let allPickEls = qml.getElementsByTagNameNS(BED_NS, 'pick');
     let allPicks = [];
     for (let pNum=0; pNum < allPickEls.length; pNum++) {
@@ -90,14 +114,19 @@ export class EventQuery {
     for ( let aNum=0; aNum < allArrivalEls.length; aNum++) {
       allArrivals.push(this.convertToArrival(allArrivalEls.item(aNum), allPicks));
     }
+    out.originList(allOrigins);
+    out.magnitudeList(allMags);
+    out.picks(allPicks);
     out.arrivals(allArrivals);
     out.eventid(this.extractEventId(qml));
+    out.preferredOriginId=this._grabFirstElText(qml, 'preferredOriginID');
+    out.preferredMagnitudeID=this._grabFirstElText(qml, 'preferredMagnitudeID');
     return out;
   }
   extractEventId(qml) {
     let eventid = qml.getAttributeNS(ANSS_CATALOG_NS, 'eventid');
     let catalogEventSource = qml.getAttributeNS(ANSS_CATALOG_NS, 'eventsource');
-    if (eventid) { 
+    if (eventid) {
       if (this.host() === USGS_HOST && catalogEventSource) {
         // USGS, NCEDC and SCEDC use concat of eventsource and eventid as eventit, sigh...
         return catalogEventSource+eventid;
@@ -115,6 +144,18 @@ export class EventQuery {
 //    throw new Error("Unable to find eventid for publicID="+publicid);
     return null;
   }
+  convertToOrigin(qml) {
+    let out = new model.Origin();
+    let otimeStr = this._grabFirstElText(this._grabFirstEl(qml, 'time'),'value');
+    if (otimeStr ) {
+      out.time(otimeStr);
+    } else {
+      console.log("origintime is missing...");
+    }
+    out.latitude(this._grabFirstElFloat(this._grabFirstEl(qml, 'latitude'), 'value'));
+    out.longitude(this._grabFirstElFloat(this._grabFirstEl(qml, 'longitude'), 'value'));
+    out.depth(this._grabFirstElFloat(this._grabFirstEl(qml, 'depth'), 'value'));
+  }
   convertToMagnitude(qml) {
     let mag = this._grabFirstElFloat(this._grabFirstEl(qml, 'mag'), 'value');
     let type = this._grabFirstElText(qml, 'type');
@@ -131,7 +172,7 @@ export class EventQuery {
   }
   convertToPick(pickQML) {
     let otimeStr = this._grabFirstElText(this._grabFirstEl(pickQML, 'time'),'value');
-    let time = this.toDateUTC(otimeStr);
+    let time = model.checkStringOrDate(otimeStr);
     let waveformIDEl = this._grabFirstEl(pickQML, 'waveformID');
     let netCode = waveformIDEl.getAttribute("networkCode");
     let stationCode = waveformIDEl.getAttribute("stationCode");
@@ -175,6 +216,7 @@ export class EventQuery {
           console.log("handle: "+mythis.host()+" "+this.status);
           if (this.status === 200) {
             let out = new DOMParser().parseFromString(this.response, "text/xml");
+            if (! out) {reject("out of DOMParser not defined");}
             out.url = url;
             resolve(out);
 //            resolve(this.responseXML);
@@ -187,8 +229,8 @@ console.log("204 nodata so return empty xml");
             } else {
               throw new Error("Got 204 but can't find DOMParser to generate empty xml");
             }
-          } else { 
-            console.log("Reject: "+mythis.host()+" "+this.status);reject(this); 
+          } else {
+            console.log("Reject: "+mythis.host()+" "+this.status);reject(this);
           }
         }
       }
@@ -324,7 +366,17 @@ console.log("204 nodata so return empty xml");
     if (this._isDef(this._maxLat)) { url = url+this.makeParam("maxlat", this.maxLat());}
     if (this._isDef(this._minLon)) { url = url+this.makeParam("minlon", this.minLon());}
     if (this._isDef(this._maxLon)) { url = url+this.makeParam("maxlon", this.maxLon());}
-    if (this._includearrivals) { 
+    if (this._isDef(this._minradius) || this._isDef(this._maxradius)) {
+      if (this._isDef(this._latitude) && this._isDef(this._longitude)) {
+        url = url+this.makeParam("latitude", this.latitude())+this.makeParam("longitude", this.longitude());
+        if (this._isDef(this._minradius)) { url = url+this.makeParam("minradius", this.minRadius());}
+        if (this._isDef(this._maxradius)) { url = url+this.makeParam("maxradius", this.maxRadius());}
+      } else {
+        console.log("Cannot use minRadius or maxRadius without latitude and longitude: lat="+this._latitude+" lon="+this._longitude);
+        throw new Error("Cannot use minRadius or maxRadius without latitude and longitude: lat="+this._latitude+" lon="+this._longitude);
+      }
+    }
+    if (this._includearrivals) {
       if (this.host() != USGS_HOST) {
         url = url+"includearrivals=true&";
       } else {
@@ -347,14 +399,8 @@ console.log("204 nodata so return empty xml");
   // duplicate here to avoid dependency and diff NS, yes that is dumb...
 
 
-  toDateUTC(str) {
-    if (! str.endsWith('Z')) {
-      str = str + 'Z';
-    }
-    return new Date(Date.parse(str));
-  }
 
-  /** converts to ISO8601 but removes the trailing Z as FDSN web services 
+  /** converts to ISO8601 but removes the trailing Z as FDSN web services
     do not allow that. */
   toIsoWoZ(date) {
     let out = date.toISOString();

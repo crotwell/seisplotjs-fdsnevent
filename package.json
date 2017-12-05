@@ -5,14 +5,14 @@
   "main": "./lib/fdsnevent.js",
   "dependencies": {
     "rsvp": "^4.0.1",
-    "seisplotjs-model": "^1.0.0"
+    "seisplotjs-model": "^1.1.0-alpha.1"
   },
   "scripts": {
     "lint": "eslint 'src/*.js'",
     "test": "echo \"Error: no test specified\" && exit 1",
     "compile": "babel --presets es2015 -d lib/ src/",
     "standalone": "browserify src/fdsnevent.js --standalone seisplotjs_fdsnevent -o seisplotjs_fdsnevent_${npm_package_version}_standalone.js -t [ babelify --presets [ es2015 ] ]",
-    "prepublish": "npm run compile"
+    "prepare": "npm run compile"
   },
   "repository": {
     "type": "git",
