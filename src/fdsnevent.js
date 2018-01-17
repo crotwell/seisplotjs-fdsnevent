@@ -2,6 +2,10 @@ import * as model from 'seisplotjs-model';
 
 import RSVP from 'rsvp';
 
+RSVP.on('error', function(reason) {
+  console.assert(false, reason);
+});
+
 export {RSVP, model };
 
 export const moment = model.moment;
