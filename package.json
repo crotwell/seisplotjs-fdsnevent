@@ -1,6 +1,6 @@
 {
   "name": "seisplotjs-fdsnevent",
-  "version": "1.1.0",
+  "version": "1.1.1-alpha.1",
   "description": "Querying and parsing of output of FDSN Event web service for Earthquake locations.",
   "main": "./lib/fdsnevent.js",
   "dependencies": {
