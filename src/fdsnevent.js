@@ -210,6 +210,10 @@ export class EventQuery {
       let client = new XMLHttpRequest();
       let url = mythis.formURL();
       client.open("GET", url);
+      client.ontimeout = function(e) {
+        this.statusText = "Timeout "+this.statusText;
+        reject(this);
+      };
       client.onreadystatechange = handler;
       client.responseType = "text";
       client.setRequestHeader("Accept", "application/xml");
