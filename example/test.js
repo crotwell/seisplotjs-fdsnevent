@@ -6,8 +6,8 @@ var daysAgo = 10;
 
 var quakeQuery = new fdsnevent.EventQuery()
   .minMag(5.5)
-  .startTime(new Date(new Date().getTime()-86400*daysAgo*1000))
-  .endTime(new Date());
+  .startTime(moment.utc().subtract(daysAgo, 'days'))
+  .endTime(moment.utc());
 d3.select("div.recentQuakesUrl")
     .append("p")
     .text("URL: "+quakeQuery.formURL());
