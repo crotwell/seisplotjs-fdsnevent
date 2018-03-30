@@ -24,6 +24,9 @@ export class EventQuery {
   constructor(host) {
     this._specVersion = 1;
     this._protocol = 'http:';
+    if (document && document.location && "https:" == document.location.protocol) {
+      this._protocol = 'https:'
+    }
     this._host = host;
     if (! host) {
       this._host = USGS_HOST;
@@ -251,7 +254,8 @@ console.log("204 nodata so return empty xml");
       let colon = ":";
       if (this.protocol().endsWith(colon)) {
         colon = "";
-      }      return this.protocol()+colon+"//"+this.host()+"/fdsnws/event/"+this.specVersion();
+      }
+      return this.protocol()+colon+"//"+this.host()+"/fdsnws/event/"+this.specVersion();
   }
 
   formCatalogsURL() {
