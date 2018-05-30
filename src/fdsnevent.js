@@ -1,4 +1,12 @@
+// @flow
+
 import * as model from 'seisplotjs-model';
+let checkStringOrDate = model.checkStringOrDate;
+let hasArgs = model.hasArgs;
+let hasNoArgs = model.hasNoArgs;
+let isStringArg = model.isStringArg;
+let isNumArg = model.isNumArg;
+let stringify = model.stringify;
 
 import RSVP from 'rsvp';
 
@@ -21,75 +29,237 @@ export let USGS_HOST = "earthquake.usgs.gov";
 export const FAKE_EMPTY_XML = '<?xml version="1.0"?><q:quakeml xmlns="http://quakeml.org/xmlns/bed/1.2" xmlns:q="http://quakeml.org/xmlns/quakeml/1.2"><eventParameters publicID="quakeml:fake/empty"></eventParameters></q:quakeml>';
 
 export class EventQuery {
-  constructor(host) {
+  /** @private */
+  _specVersion: number;
+  /** @private */
+  _protocol: string;
+  /** @private */
+  _host: string;
+  /** @private */
+  _nodata: number;
+  /** @private */
+  _eventid: string;
+  /** @private */
+  _startTime: moment;
+  /** @private */
+  _endTime: moment;
+  /** @private */
+  _minMag: number;
+  /** @private */
+  _maxMag: number;
+  /** @private */
+  _minLat: number;
+  /** @private */
+  _maxLat: number;
+  /** @private */
+  _minLon: number;
+  /** @private */
+  _maxLon: number;
+  /** @private */
+  _latitude: number;
+  /** @private */
+  _longitude: number;
+  /** @private */
+  _minRadius: number;
+  /** @private */
+  _maxRadius: number;
+  /** @private */
+  _includearrivals: boolean;
+  constructor(host?: string) {
     this._specVersion = 1;
     this._protocol = 'http:';
-    if (document && document.location && "https:" == document.location.protocol) {
+    if (document && document.location && "https:" === document.location.protocol) {
       this._protocol = 'https:'
     }
-    this._host = host;
+    this.host(host);
     if (! host) {
       this._host = USGS_HOST;
     }
   }
-  specVersion(value) {
-    return arguments.length ? (this._specVersion = value, this) : this._specVersion;
+  specVersion(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._specVersion;
+    } else if (hasArgs(value)) {
+      this._specVersion = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
   }
-  protocol(value) {
-    return arguments.length ? (this._protocol = value, this) : this._protocol;
+  protocol(value?: string) :string | EventQuery {
+    if (isStringArg(value)) {
+      this._protocol = value;
+      return this;
+    } else if (hasNoArgs(value)) {
+      return this._protocol;
+    } else {
+      throw new Error('value argument is optional or string, but was '+typeof value);
+    }
   }
-  host(value) {
-    return arguments.length ? (this._host = value, this) : this._host;
+  host(value?: string) :string | EventQuery {
+    if (isStringArg(value)) {
+      this._host = value;
+      return this;
+    } else if (hasNoArgs(value)) {
+      return this._host;
+    } else {
+      throw new Error('value argument is optional or string, but was '+typeof value);
+    }
   }
-  nodata(value) {
-    return arguments.length ? (this._nodata = value, this) : this._nodata;
+  nodata(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._nodata;
+    } else if (hasArgs(value)) {
+      this._nodata = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
   }
-  eventid(value) {
-    return arguments.length ? (this._eventid = value, this) : this._eventid;
+  eventid(value?: string) :string | EventQuery {
+    if (isStringArg(value)) {
+      this._eventid = value;
+      return this;
+    } else if (hasNoArgs(value)) {
+      return this._eventid;
+    } else {
+      throw new Error('value argument is optional or string, but was '+typeof value);
+    }
   }
-  startTime(value) {
-    return arguments.length ? (this._startTime = model.checkStringOrDate(value), this) : this._startTime;
+  startTime(value?: moment) :moment | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._startTime;
+    } else if (hasArgs(value)) {
+      this._startTime = checkStringOrDate(value);
+      return this;
+    } else {
+      throw new Error('value argument is optional or moment or string, but was '+typeof value);
+    }
   }
-  endTime(value) {
-    return arguments.length ? (this._endTime = model.checkStringOrDate(value), this) : this._endTime;
+  endTime(value?: moment) :moment | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._endTime;
+    } else if (hasArgs(value)) {
+      this._endTime = checkStringOrDate(value);
+      return this;
+    } else {
+      throw new Error('value argument is optional or moment or string, but was '+typeof value);
+    }
   }
-  minMag(value) {
-    return arguments.length ? (this._minMag = value, this) : this._minMag;
+  minMag(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._minMag;
+    } else if (hasArgs(value)) {
+      this._minMag = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
   }
-  maxMag(value) {
-    return arguments.length ? (this._maxMag = value, this) : this._maxMag;
+  maxMag(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._minMag;
+    } else if (hasArgs(value)) {
+      this._minMag = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
   }
-  minLat(value) {
-    return arguments.length ? (this._minLat = value, this) : this._minLat;
+  minLat(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._minLat;
+    } else if (hasArgs(value)) {
+      this._minLat = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
   }
-  maxLat(value) {
-    return arguments.length ? (this._maxLat = value, this) : this._maxLat;
+  maxLat(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._maxLat;
+    } else if (hasArgs(value)) {
+      this._maxLat = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
   }
-  minLon(value) {
-    return arguments.length ? (this._minLon = value, this) : this._minLon;
+  minLon(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._minLon;
+    } else if (hasArgs(value)) {
+      this._minLon = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
   }
-  maxLon(value) {
-    return arguments.length ? (this._maxLon = value, this) : this._maxLon;
+  maxLon(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._maxLon;
+    } else if (hasArgs(value)) {
+      this._maxLon = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
   }
-  latitude(value) {
-    return arguments.length ? (this._latitude = value, this) : this._latitude;
+  latitude(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._latitude;
+    } else if (hasArgs(value)) {
+      this._latitude = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
   }
-  longitude(value) {
-    return arguments.length ? (this._longitude = value, this) : this._longitude;
+  longitude(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._longitude;
+    } else if (hasArgs(value)) {
+      this._longitude = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
   }
-  minRadius(value) {
-    return arguments.length ? (this._minRadius = value, this) : this._minRadius;
+  minRadius(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._minRadius;
+    } else if (hasArgs(value)) {
+      this._minRadius = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
   }
-  maxRadius(value) {
-    return arguments.length ? (this._maxRadius = value, this) : this._maxRadius;
+  maxRadius(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._maxRadius;
+    } else if (hasArgs(value)) {
+      this._maxRadius = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
   }
-  includearrivals(value) {
-    return arguments.length ? (this._includearrivals = value, this) : this._includearrivals;
+  includearrivals(value?: boolean): boolean | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._includearrivals;
+    } else if (hasArgs(value)) {
+      this._includearrivals = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or boolean, but was '+typeof value);
+    }
   }
 
-  convertToQuake(qml) {
+  convertToQuake(qml: Element) :model.Quake {
     let out = new model.Quake();
-    out.publicID = qml.getAttribute('publicID');
+    out.publicID = this._grabAttribute(qml, 'publicID');
     out.description(this._grabFirstElText(this._grabFirstEl(qml, 'description'), 'text'));
     let otimeStr = this._grabFirstElText(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'time'),'value');
     if (otimeStr ) {
@@ -100,7 +270,6 @@ export class EventQuery {
     out.latitude(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'latitude'), 'value'));
     out.longitude(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'longitude'), 'value'));
     out.depth(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'depth'), 'value'));
-    out.magnitude(this.convertToMagnitude(this._grabFirstEl(qml, 'magnitude')));
     let allOriginEls = qml.getElementsByTagNameNS(BED_NS, "origin");
     let allOrigins = [];
     for (let oNum=0; oNum < allOriginEls.length; oNum++) {
@@ -111,6 +280,7 @@ export class EventQuery {
     for (let mNum=0; mNum < allMagEls.length; mNum++) {
       allMags.push(this.convertToMagnitude(allMagEls.item(mNum)));
     }
+    if (allMags.length > 0) {out.magnitude = allMags[0];}
     let allPickEls = qml.getElementsByTagNameNS(BED_NS, 'pick');
     let allPicks = [];
     for (let pNum=0; pNum < allPickEls.length; pNum++) {
@@ -130,9 +300,9 @@ export class EventQuery {
     out.preferredMagnitudeID=this._grabFirstElText(qml, 'preferredMagnitudeID');
     return out;
   }
-  extractEventId(qml) {
-    let eventid = qml.getAttributeNS(ANSS_CATALOG_NS, 'eventid');
-    let catalogEventSource = qml.getAttributeNS(ANSS_CATALOG_NS, 'eventsource');
+  extractEventId(qml: Element) :string|null {
+    let eventid = this._grabAttributeNS(qml, ANSS_CATALOG_NS, 'eventid');
+    let catalogEventSource = this._grabAttributeNS(qml, ANSS_CATALOG_NS, 'eventsource');
     if (eventid) {
       if (this.host() === USGS_HOST && catalogEventSource) {
         // USGS, NCEDC and SCEDC use concat of eventsource and eventid as eventit, sigh...
@@ -141,17 +311,19 @@ export class EventQuery {
         return eventid;
       }
     }
-    let publicid = qml.getAttribute('publicID');
-    let re = /eventid=([\w\d]+)/;
-    let parsed = re.exec(publicid);
-    if (parsed) { return parsed[1];}
-    re = /evid=([\w\d]+)/;
-    parsed = re.exec(publicid);
-    if (parsed) { return parsed[1];}
+    let publicid = this._grabAttribute(qml, 'publicID');
+    if (publicid) {
+      let re = /eventid=([\w\d]+)/;
+      let parsed = re.exec(publicid);
+      if (parsed) { return parsed[1];}
+      re = /evid=([\w\d]+)/;
+      parsed = re.exec(publicid);
+      if (parsed) { return parsed[1];}
+    }
 //    throw new Error("Unable to find eventid for publicID="+publicid);
     return null;
   }
-  convertToOrigin(qml) {
+  convertToOrigin(qml: Element) :model.Origin {
     let out = new model.Origin();
     let otimeStr = this._grabFirstElText(this._grabFirstEl(qml, 'time'),'value');
     if (otimeStr ) {
@@ -162,43 +334,60 @@ export class EventQuery {
     out.latitude(this._grabFirstElFloat(this._grabFirstEl(qml, 'latitude'), 'value'));
     out.longitude(this._grabFirstElFloat(this._grabFirstEl(qml, 'longitude'), 'value'));
     out.depth(this._grabFirstElFloat(this._grabFirstEl(qml, 'depth'), 'value'));
-  }
-  convertToMagnitude(qml) {
-    let mag = this._grabFirstElFloat(this._grabFirstEl(qml, 'mag'), 'value');
-    let type = this._grabFirstElText(qml, 'type');
-    let out = null;
-    if (mag && type) {
-      out = new model.Magnitude(mag, type);
-    }
     return out;
   }
-  convertToArrival(arrivalQML, allPicks) {
+  convertToMagnitude(qml: Element) :model.Magnitude {
+    let mag = this._grabFirstElFloat(this._grabFirstEl(qml, 'mag'), 'value');
+    let type = this._grabFirstElText(qml, 'type');
+    if (mag && type) {
+      return new model.Magnitude(mag, type);
+    }
+    throw new Error("Did not find mag and type in Element: ");
+  }
+  convertToArrival(arrivalQML: Element, allPicks: Array<model.Pick>) :model.Arrival {
     let pickID = this._grabFirstElText(arrivalQML, 'pickID');
     let phase = this._grabFirstElText(arrivalQML, 'phase');
-    return new model.Arrival(phase, allPicks.find(function(p) { return p.publicID() == pickID;}));
+    if (phase && pickID) {
+      let myPick = allPicks.find(function(p: model.Pick) { return p.publicID() === pickID;});
+      if ( ! myPick) {
+        throw new Error("Can't find pick with ID="+pickID+" for Arrival");
+      }
+      return new model.Arrival(phase, myPick);
+    } else {
+      throw new Error("Arrival does not have phase or pickID: "+stringify(phase)+" "+stringify(pickID));
+    }
   }
-  convertToPick(pickQML) {
+  convertToPick(pickQML: Element) :model.Pick {
     let otimeStr = this._grabFirstElText(this._grabFirstEl(pickQML, 'time'),'value');
     let time = model.checkStringOrDate(otimeStr);
     let waveformIDEl = this._grabFirstEl(pickQML, 'waveformID');
-    let netCode = waveformIDEl.getAttribute("networkCode");
-    let stationCode = waveformIDEl.getAttribute("stationCode");
-    let locationCode = waveformIDEl.getAttribute("locationCode");
-    let channelCode = waveformIDEl.getAttribute("channelCode");
+    let netCode = this._grabAttribute(waveformIDEl, "networkCode");
+    let stationCode = this._grabAttribute(waveformIDEl, "stationCode");
+    let locationCode = this._grabAttribute(waveformIDEl, "locationCode");
+    let channelCode = this._grabAttribute(waveformIDEl, "channelCode");
+    if (! netCode || ! stationCode || ! locationCode || ! channelCode) {
+      throw new Error("missing codes: "+stringify(netCode)
+                      +"."+ stringify(stationCode)
+                      +"."+ stringify(locationCode)
+                      +"."+ stringify(channelCode));
+    }
     let out = new model.Pick(time, netCode, stationCode, locationCode, channelCode);
-    out.publicID(pickQML.getAttribute("publicID"));
+    out.publicID(this._grabAttribute(pickQML, "publicID"));
     return out;
   }
 
-  query() {
+  query(): Promise<Array<model.Quake>> {
     let mythis = this;
     return this.queryRawXml().then(function(rawXml) {
         return mythis.parseQuakeML(rawXml);
     });
   }
 
-  parseQuakeML(rawXml) {
+  parseQuakeML(rawXml: Document) :Array<model.Quake> {
     let top = rawXml.documentElement;
+    if (! top) {
+      throw new Error("Can't get documentElement");
+    }
     let eventArray = top.getElementsByTagName("event");
     let out = [];
     for (let i=0; i<eventArray.length; i++) {
@@ -207,7 +396,7 @@ export class EventQuery {
     return out;
   }
 
-  queryRawXml() {
+  queryRawXml() :Promise<Document> {
     let mythis = this;
     let promise = new RSVP.Promise(function(resolve, reject) {
       let client = new XMLHttpRequest();
@@ -224,11 +413,10 @@ export class EventQuery {
 
       function handler() {
         if (this.readyState === this.DONE) {
-          console.log("handle: "+mythis.host()+" "+this.status);
+          console.log("handle: "+stringify(mythis.host())+" "+this.status);
           if (this.status === 200) {
             let out = new DOMParser().parseFromString(this.response, "text/xml");
             if (! out) {reject("out of DOMParser not defined");}
-            out.url = url;
             resolve(out);
 //            resolve(this.responseXML);
           } else if (this.status === 204 || (mythis.nodata() && this.status === mythis.nodata())) {
@@ -241,7 +429,7 @@ console.log("204 nodata so return empty xml");
               throw new Error("Got 204 but can't find DOMParser to generate empty xml");
             }
           } else {
-            console.log("Reject: "+mythis.host()+" "+this.status);reject(this);
+            console.log("Reject: "+stringify(mythis.host())+" "+this.status);reject(this);
           }
         }
       }
@@ -250,18 +438,18 @@ console.log("204 nodata so return empty xml");
   }
 
 
-  formBaseURL() {
+  formBaseURL() :string {
       let colon = ":";
-      if (this.protocol().endsWith(colon)) {
+      if (this._protocol.endsWith(colon)) {
         colon = "";
       }
-      return this.protocol()+colon+"//"+this.host()+"/fdsnws/event/"+this.specVersion();
+      return this._protocol+colon+"//"+this._host+"/fdsnws/event/"+this._specVersion;
   }
 
-  formCatalogsURL() {
+  formCatalogsURL() :string {
     return this.formBaseURL()+"/catalogs";
   }
-  queryCatalogs() {
+  queryCatalogs() :Promise<Array<string>> {
     let mythis = this;
     let promise = new RSVP.Promise(function(resolve, reject) {
       let url = mythis.formCatalogsURL();
@@ -274,7 +462,7 @@ console.log("204 nodata so return empty xml");
 
       function handler() {
         if (this.readyState === this.DONE) {
-          console.log("handle catalogs: "+mythis.host()+" "+this.status);
+          console.log("handle catalogs: "+stringify(mythis.host())+" "+this.status);
           if (this.status === 200) {
             resolve(this.response);
           } else {
@@ -294,10 +482,10 @@ console.log("204 nodata so return empty xml");
     });
   }
 
-  formContributorsURL() {
+  formContributorsURL() :string {
     return this.formBaseURL()+"/contributors";
   }
-  queryContributors() {
+  queryContributors() :Promise<Array<string>> {
     let mythis = this;
     let promise = new RSVP.Promise(function(resolve, reject) {
       let url = mythis.formContributorsURL();
@@ -310,10 +498,10 @@ console.log("204 nodata so return empty xml");
 
       function handler() {
         if (this.readyState === this.DONE) {
-          console.log("handle contributors: "+mythis.host()+" "+this.status);
+          console.log("handle contributors: "+stringify(mythis.host())+" "+this.status);
           if (this.status === 200) { resolve(this.response); }
           else {
-            console.log("Reject contributors: "+mythis.host()+" "+this.status);reject(this); }
+            console.log("Reject contributors: "+stringify(mythis.host())+" "+this.status);reject(this); }
         }
       }
     });
@@ -328,11 +516,11 @@ console.log("204 nodata so return empty xml");
     });
   }
 
-  formVersionURL() {
+  formVersionURL() :string {
     return this.formBaseURL()+"/version";
   }
 
-  queryVersion() {
+  queryVersion() :Promise<string>{
     let mythis = this;
     let promise = new RSVP.Promise(function(resolve, reject) {
       let url = mythis.formVersionURL();
@@ -345,27 +533,27 @@ console.log("204 nodata so return empty xml");
 
       function handler() {
         if (this.readyState === this.DONE) {
-          console.log("handle version: "+mythis.host()+" "+this.status);
+          console.log("handle version: "+stringify(mythis.host())+" "+this.status);
           if (this.status === 200) { resolve(this.response); }
           else {
-            console.log("Reject version: "+mythis.host()+" "+this.status);reject(this); }
+            console.log("Reject version: "+stringify(mythis.host())+" "+this.status);reject(this); }
         }
       }
     });
     return promise;
   }
 
-  makeParam(name, val) {
-    return name+"="+encodeURIComponent(val)+"&";
+  makeParam(name: string, val: mixed) :string {
+    return name+"="+encodeURIComponent(stringify(val))+"&";
   }
 
-  _isDef(v) {
-    return v || v === 0;
+  _isDef(v: number) :boolean {
+    return typeof v !== 'undefined' && v !== null;
   }
 
-  formURL() {
+  formURL() :string {
     let colon = ":";
-    if (this.protocol().endsWith(colon)) {
+    if (this._protocol.endsWith(colon)) {
       colon = "";
     }
     let url = this.formBaseURL()+"/query?";
@@ -378,18 +566,18 @@ console.log("204 nodata so return empty xml");
     if (this._isDef(this._maxLat)) { url = url+this.makeParam("maxlat", this.maxLat());}
     if (this._isDef(this._minLon)) { url = url+this.makeParam("minlon", this.minLon());}
     if (this._isDef(this._maxLon)) { url = url+this.makeParam("maxlon", this.maxLon());}
-    if (this._isDef(this._minradius) || this._isDef(this._maxradius)) {
+    if (this._isDef(this._minRadius) || this._isDef(this._maxRadius)) {
       if (this._isDef(this._latitude) && this._isDef(this._longitude)) {
         url = url+this.makeParam("latitude", this.latitude())+this.makeParam("longitude", this.longitude());
-        if (this._isDef(this._minradius)) { url = url+this.makeParam("minradius", this.minRadius());}
-        if (this._isDef(this._maxradius)) { url = url+this.makeParam("maxradius", this.maxRadius());}
+        if (this._isDef(this._minRadius)) { url = url+this.makeParam("minradius", this.minRadius());}
+        if (this._isDef(this._maxRadius)) { url = url+this.makeParam("maxradius", this.maxRadius());}
       } else {
         console.log("Cannot use minRadius or maxRadius without latitude and longitude: lat="+this._latitude+" lon="+this._longitude);
         throw new Error("Cannot use minRadius or maxRadius without latitude and longitude: lat="+this._latitude+" lon="+this._longitude);
       }
     }
     if (this._includearrivals) {
-      if (this.host() != USGS_HOST) {
+      if (this._host != USGS_HOST) {
         url = url+"includearrivals=true&";
       } else {
         // USGS does not support includearrivals, but does actually
@@ -414,34 +602,51 @@ console.log("204 nodata so return empty xml");
 
   /** converts to ISO8601 but removes the trailing Z as FDSN web services
     do not allow that. */
-  toIsoWoZ(date) {
+  toIsoWoZ(date:moment) :string {
     let out = date.toISOString();
     return out.substring(0, out.length-1);
   }
 
-  _grabFirstEl(xml, tagName) {
-    if ( ! xml) { return null;}
+  _grabFirstEl(xml: Element | null | void, tagName: string) :Element | void {
+    if ( ! xml) { return undefined;}
     let out = xml.getElementsByTagNameNS(BED_NS, tagName);
     if (out && out.length > 0) {
       return out.item(0);
     } else {
-      return null;
+      return undefined;
     }
   }
 
-  _grabFirstElText(xml, tagName) {
+  _grabFirstElText(xml: Element | null | void, tagName: string) :string | void {
     let out = this._grabFirstEl(xml, tagName);
     if (out) {
-      out = out.textContent;
+      return out.textContent;
     }
-    return out;
+    return undefined;
   }
 
-  _grabFirstElFloat(xml, tagName) {
+  _grabFirstElFloat(xml: Element | null | void, tagName: string) :number | void {
     let out = this._grabFirstElText(xml, tagName);
     if (out) {
       out = parseFloat(out);
     }
-    return out;
+    return undefined;
+  }
+
+  _grabAttribute(xml: Element | null | void, tagName: string) :string | void {
+    if ( ! xml) { return undefined;}
+    let a = xml.getAttribute(tagName);
+    if (a === null || typeof a === "undefined") {
+      return undefined;
+    }
+    return a;
+  }
+  _grabAttributeNS(xml: Element | null | void, namespace: string, tagName: string) :string | void {
+    if ( ! xml) { return undefined;}
+    let a = xml.getAttributeNS(namespace, tagName);
+    if (a === null || typeof a === "undefined") {
+      return undefined;
+    }
+    return a;
   }
 }
