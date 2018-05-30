@@ -1,14 +1,11 @@
 // @flow
 
 import * as model from 'seisplotjs-model';
-let checkStringOrDate = model.checkStringOrDate;
-let hasArgs = model.hasArgs;
-let hasNoArgs = model.hasNoArgs;
-let isStringArg = model.isStringArg;
-let isNumArg = model.isNumArg;
-let stringify = model.stringify;
-
 import * as util from './util';
+
+// special due to flow
+import {hasArgs, hasNoArgs, isStringArg, isNumArg, checkStringOrDate, stringify} from 'seisplotjs-model';
+
 
 import RSVP from 'rsvp';
 
@@ -79,11 +76,11 @@ export class EventQuery {
     }
   }
   specVersion(value?: number): number | EventQuery {
-    if (hasNoArgs(value)) {
-      return this._specVersion;
-    } else if (hasArgs(value)) {
+    if (hasArgs(value)) {
       this._specVersion = value;
       return this;
+    } else if (hasNoArgs(value)) {
+      return this._specVersion;
     } else {
       throw new Error('value argument is optional or number, but was '+typeof value);
     }
@@ -119,12 +116,12 @@ export class EventQuery {
     }
   }
   eventid(value?: string) :string | EventQuery {
-    if (isStringArg(value)) {
+    if (hasNoArgs(value)) {
+      return this._eventid;
+    } else if (isStringArg(value)) {
       this._eventid = value;
       return this;
-    } else if (hasNoArgs(value)) {
-      return this._eventid;
-    } else {
+    } else  {
       throw new Error('value argument is optional or string, but was '+typeof value);
     }
   }
@@ -151,7 +148,7 @@ export class EventQuery {
   minMag(value?: number): number | EventQuery {
     if (hasNoArgs(value)) {
       return this._minMag;
-    } else if (hasArgs(value)) {
+    } else if (isNumArg(value)) {
       this._minMag = value;
       return this;
     } else {
@@ -161,7 +158,7 @@ export class EventQuery {
   maxMag(value?: number): number | EventQuery {
     if (hasNoArgs(value)) {
       return this._minMag;
-    } else if (hasArgs(value)) {
+    } else if (isNumArg(value)) {
       this._minMag = value;
       return this;
     } else {
@@ -171,7 +168,7 @@ export class EventQuery {
   minLat(value?: number): number | EventQuery {
     if (hasNoArgs(value)) {
       return this._minLat;
-    } else if (hasArgs(value)) {
+    } else if (isNumArg(value)) {
       this._minLat = value;
       return this;
     } else {
@@ -181,7 +178,7 @@ export class EventQuery {
   maxLat(value?: number): number | EventQuery {
     if (hasNoArgs(value)) {
       return this._maxLat;
-    } else if (hasArgs(value)) {
+    } else if (isNumArg(value)) {
       this._maxLat = value;
       return this;
     } else {
@@ -191,7 +188,7 @@ export class EventQuery {
   minLon(value?: number): number | EventQuery {
     if (hasNoArgs(value)) {
       return this._minLon;
-    } else if (hasArgs(value)) {
+    } else if (isNumArg(value)) {
       this._minLon = value;
       return this;
     } else {
@@ -201,7 +198,7 @@ export class EventQuery {
   maxLon(value?: number): number | EventQuery {
     if (hasNoArgs(value)) {
       return this._maxLon;
-    } else if (hasArgs(value)) {
+    } else if (isNumArg(value)) {
       this._maxLon = value;
       return this;
     } else {
@@ -211,7 +208,7 @@ export class EventQuery {
   latitude(value?: number): number | EventQuery {
     if (hasNoArgs(value)) {
       return this._latitude;
-    } else if (hasArgs(value)) {
+    } else if (isNumArg(value)) {
       this._latitude = value;
       return this;
     } else {
@@ -221,7 +218,7 @@ export class EventQuery {
   longitude(value?: number): number | EventQuery {
     if (hasNoArgs(value)) {
       return this._longitude;
-    } else if (hasArgs(value)) {
+    } else if (isNumArg(value)) {
       this._longitude = value;
       return this;
     } else {
@@ -231,7 +228,7 @@ export class EventQuery {
   minRadius(value?: number): number | EventQuery {
     if (hasNoArgs(value)) {
       return this._minRadius;
-    } else if (hasArgs(value)) {
+    } else if (isNumArg(value)) {
       this._minRadius = value;
       return this;
     } else {
@@ -241,7 +238,7 @@ export class EventQuery {
   maxRadius(value?: number): number | EventQuery {
     if (hasNoArgs(value)) {
       return this._maxRadius;
-    } else if (hasArgs(value)) {
+    } else if (isNumArg(value)) {
       this._maxRadius = value;
       return this;
     } else {
@@ -361,7 +358,7 @@ export class EventQuery {
   }
   convertToPick(pickQML: Element) :model.Pick {
     let otimeStr = util._grabFirstElText(util._grabFirstEl(pickQML, 'time'),'value');
-    let time = model.checkStringOrDate(otimeStr);
+    let time = checkStringOrDate(otimeStr);
     let waveformIDEl = util._grabFirstEl(pickQML, 'waveformID');
     let netCode = util._grabAttribute(waveformIDEl, "networkCode");
     let stationCode = util._grabAttribute(waveformIDEl, "stationCode");

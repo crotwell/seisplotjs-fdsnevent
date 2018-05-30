@@ -1,4 +1,6 @@
 
+
+
 // these are similar methods as in seisplotjs-fdsnstation
 // duplicate here to avoid dependency and diff NS, yes that is dumb...
 
