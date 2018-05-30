@@ -8,6 +8,8 @@ let isStringArg = model.isStringArg;
 let isNumArg = model.isNumArg;
 let stringify = model.stringify;
 
+import * as util from './util';
+
 import RSVP from 'rsvp';
 
 RSVP.on('error', function(reason) {
@@ -259,17 +261,17 @@ export class EventQuery {
 
   convertToQuake(qml: Element) :model.Quake {
     let out = new model.Quake();
-    out.publicID = this._grabAttribute(qml, 'publicID');
-    out.description(this._grabFirstElText(this._grabFirstEl(qml, 'description'), 'text'));
-    let otimeStr = this._grabFirstElText(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'time'),'value');
+    out.publicID = util._grabAttribute(qml, 'publicID');
+    out.description(util._grabFirstElText(util._grabFirstEl(qml, 'description'), 'text'));
+    let otimeStr = util._grabFirstElText(util._grabFirstEl(util._grabFirstEl(qml, 'origin'), 'time'),'value');
     if (otimeStr ) {
       out.time(otimeStr);
     } else {
       console.log("origintime is missing..."+out.description());
     }
-    out.latitude(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'latitude'), 'value'));
-    out.longitude(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'longitude'), 'value'));
-    out.depth(this._grabFirstElFloat(this._grabFirstEl(this._grabFirstEl(qml, 'origin'), 'depth'), 'value'));
+    out.latitude(util._grabFirstElFloat(util._grabFirstEl(util._grabFirstEl(qml, 'origin'), 'latitude'), 'value'));
+    out.longitude(util._grabFirstElFloat(util._grabFirstEl(util._grabFirstEl(qml, 'origin'), 'longitude'), 'value'));
+    out.depth(util._grabFirstElFloat(util._grabFirstEl(util._grabFirstEl(qml, 'origin'), 'depth'), 'value'));
     let allOriginEls = qml.getElementsByTagNameNS(BED_NS, "origin");
     let allOrigins = [];
     for (let oNum=0; oNum < allOriginEls.length; oNum++) {
@@ -296,13 +298,13 @@ export class EventQuery {
     out.picks(allPicks);
     out.arrivals(allArrivals);
     out.eventid(this.extractEventId(qml));
-    out.preferredOriginId=this._grabFirstElText(qml, 'preferredOriginID');
-    out.preferredMagnitudeID=this._grabFirstElText(qml, 'preferredMagnitudeID');
+    out.preferredOriginId=util._grabFirstElText(qml, 'preferredOriginID');
+    out.preferredMagnitudeID=util._grabFirstElText(qml, 'preferredMagnitudeID');
     return out;
   }
   extractEventId(qml: Element) :string|null {
-    let eventid = this._grabAttributeNS(qml, ANSS_CATALOG_NS, 'eventid');
-    let catalogEventSource = this._grabAttributeNS(qml, ANSS_CATALOG_NS, 'eventsource');
+    let eventid = util._grabAttributeNS(qml, ANSS_CATALOG_NS, 'eventid');
+    let catalogEventSource = util._grabAttributeNS(qml, ANSS_CATALOG_NS, 'eventsource');
     if (eventid) {
       if (this.host() === USGS_HOST && catalogEventSource) {
         // USGS, NCEDC and SCEDC use concat of eventsource and eventid as eventit, sigh...
@@ -311,7 +313,7 @@ export class EventQuery {
         return eventid;
       }
     }
-    let publicid = this._grabAttribute(qml, 'publicID');
+    let publicid = util._grabAttribute(qml, 'publicID');
     if (publicid) {
       let re = /eventid=([\w\d]+)/;
       let parsed = re.exec(publicid);
@@ -325,28 +327,28 @@ export class EventQuery {
   }
   convertToOrigin(qml: Element) :model.Origin {
     let out = new model.Origin();
-    let otimeStr = this._grabFirstElText(this._grabFirstEl(qml, 'time'),'value');
+    let otimeStr = util._grabFirstElText(util._grabFirstEl(qml, 'time'),'value');
     if (otimeStr ) {
       out.time(otimeStr);
     } else {
       console.log("origintime is missing...");
     }
-    out.latitude(this._grabFirstElFloat(this._grabFirstEl(qml, 'latitude'), 'value'));
-    out.longitude(this._grabFirstElFloat(this._grabFirstEl(qml, 'longitude'), 'value'));
-    out.depth(this._grabFirstElFloat(this._grabFirstEl(qml, 'depth'), 'value'));
+    out.latitude(util._grabFirstElFloat(util._grabFirstEl(qml, 'latitude'), 'value'));
+    out.longitude(util._grabFirstElFloat(util._grabFirstEl(qml, 'longitude'), 'value'));
+    out.depth(util._grabFirstElFloat(util._grabFirstEl(qml, 'depth'), 'value'));
     return out;
   }
   convertToMagnitude(qml: Element) :model.Magnitude {
-    let mag = this._grabFirstElFloat(this._grabFirstEl(qml, 'mag'), 'value');
-    let type = this._grabFirstElText(qml, 'type');
+    let mag = util._grabFirstElFloat(util._grabFirstEl(qml, 'mag'), 'value');
+    let type = util._grabFirstElText(qml, 'type');
     if (mag && type) {
       return new model.Magnitude(mag, type);
     }
     throw new Error("Did not find mag and type in Element: ");
   }
   convertToArrival(arrivalQML: Element, allPicks: Array<model.Pick>) :model.Arrival {
-    let pickID = this._grabFirstElText(arrivalQML, 'pickID');
-    let phase = this._grabFirstElText(arrivalQML, 'phase');
+    let pickID = util._grabFirstElText(arrivalQML, 'pickID');
+    let phase = util._grabFirstElText(arrivalQML, 'phase');
     if (phase && pickID) {
       let myPick = allPicks.find(function(p: model.Pick) { return p.publicID() === pickID;});
       if ( ! myPick) {
@@ -358,13 +360,13 @@ export class EventQuery {
     }
   }
   convertToPick(pickQML: Element) :model.Pick {
-    let otimeStr = this._grabFirstElText(this._grabFirstEl(pickQML, 'time'),'value');
+    let otimeStr = util._grabFirstElText(util._grabFirstEl(pickQML, 'time'),'value');
     let time = model.checkStringOrDate(otimeStr);
-    let waveformIDEl = this._grabFirstEl(pickQML, 'waveformID');
-    let netCode = this._grabAttribute(waveformIDEl, "networkCode");
-    let stationCode = this._grabAttribute(waveformIDEl, "stationCode");
-    let locationCode = this._grabAttribute(waveformIDEl, "locationCode");
-    let channelCode = this._grabAttribute(waveformIDEl, "channelCode");
+    let waveformIDEl = util._grabFirstEl(pickQML, 'waveformID');
+    let netCode = util._grabAttribute(waveformIDEl, "networkCode");
+    let stationCode = util._grabAttribute(waveformIDEl, "stationCode");
+    let locationCode = util._grabAttribute(waveformIDEl, "locationCode");
+    let channelCode = util._grabAttribute(waveformIDEl, "channelCode");
     if (! netCode || ! stationCode || ! locationCode || ! channelCode) {
       throw new Error("missing codes: "+stringify(netCode)
                       +"."+ stringify(stationCode)
@@ -372,7 +374,7 @@ export class EventQuery {
                       +"."+ stringify(channelCode));
     }
     let out = new model.Pick(time, netCode, stationCode, locationCode, channelCode);
-    out.publicID(this._grabAttribute(pickQML, "publicID"));
+    out.publicID(util._grabAttribute(pickQML, "publicID"));
     return out;
   }
 
@@ -547,10 +549,6 @@ console.log("204 nodata so return empty xml");
     return name+"="+encodeURIComponent(stringify(val))+"&";
   }
 
-  _isDef(v: number) :boolean {
-    return typeof v !== 'undefined' && v !== null;
-  }
-
   formURL() :string {
     let colon = ":";
     if (this._protocol.endsWith(colon)) {
@@ -558,19 +556,19 @@ console.log("204 nodata so return empty xml");
     }
     let url = this.formBaseURL()+"/query?";
     if (this._eventid) { url = url+this.makeParam("eventid", this.eventid());}
-    if (this._startTime) { url = url+this.makeParam("starttime", this.toIsoWoZ(this.startTime()));}
-    if (this._endTime) { url = url+this.makeParam("endtime", this.toIsoWoZ(this.endTime()));}
-    if (this._isDef(this._minMag)) { url = url+this.makeParam("minmag", this.minMag());}
-    if (this._isDef(this._maxMag)) { url = url+this.makeParam("maxmag", this.maxMag());}
-    if (this._isDef(this._minLat)) { url = url+this.makeParam("minlat", this.minLat());}
-    if (this._isDef(this._maxLat)) { url = url+this.makeParam("maxlat", this.maxLat());}
-    if (this._isDef(this._minLon)) { url = url+this.makeParam("minlon", this.minLon());}
-    if (this._isDef(this._maxLon)) { url = url+this.makeParam("maxlon", this.maxLon());}
-    if (this._isDef(this._minRadius) || this._isDef(this._maxRadius)) {
-      if (this._isDef(this._latitude) && this._isDef(this._longitude)) {
+    if (this._startTime) { url = url+this.makeParam("starttime", util._toIsoWoZ(this.startTime()));}
+    if (this._endTime) { url = url+this.makeParam("endtime", util._toIsoWoZ(this.endTime()));}
+    if (util._isDef(this._minMag)) { url = url+this.makeParam("minmag", this.minMag());}
+    if (util._isDef(this._maxMag)) { url = url+this.makeParam("maxmag", this.maxMag());}
+    if (util._isDef(this._minLat)) { url = url+this.makeParam("minlat", this.minLat());}
+    if (util._isDef(this._maxLat)) { url = url+this.makeParam("maxlat", this.maxLat());}
+    if (util._isDef(this._minLon)) { url = url+this.makeParam("minlon", this.minLon());}
+    if (util._isDef(this._maxLon)) { url = url+this.makeParam("maxlon", this.maxLon());}
+    if (util._isDef(this._minRadius) || util._isDef(this._maxRadius)) {
+      if (util._isDef(this._latitude) && util._isDef(this._longitude)) {
         url = url+this.makeParam("latitude", this.latitude())+this.makeParam("longitude", this.longitude());
-        if (this._isDef(this._minRadius)) { url = url+this.makeParam("minradius", this.minRadius());}
-        if (this._isDef(this._maxRadius)) { url = url+this.makeParam("maxradius", this.maxRadius());}
+        if (util._isDef(this._minRadius)) { url = url+this.makeParam("minradius", this.minRadius());}
+        if (util._isDef(this._maxRadius)) { url = url+this.makeParam("maxradius", this.maxRadius());}
       } else {
         console.log("Cannot use minRadius or maxRadius without latitude and longitude: lat="+this._latitude+" lon="+this._longitude);
         throw new Error("Cannot use minRadius or maxRadius without latitude and longitude: lat="+this._latitude+" lon="+this._longitude);
@@ -595,58 +593,4 @@ console.log("204 nodata so return empty xml");
     return url;
   }
 
-  // these are similar methods as in seisplotjs-fdsnstation
-  // duplicate here to avoid dependency and diff NS, yes that is dumb...
-
-
-
-  /** converts to ISO8601 but removes the trailing Z as FDSN web services
-    do not allow that. */
-  toIsoWoZ(date:moment) :string {
-    let out = date.toISOString();
-    return out.substring(0, out.length-1);
-  }
-
-  _grabFirstEl(xml: Element | null | void, tagName: string) :Element | void {
-    if ( ! xml) { return undefined;}
-    let out = xml.getElementsByTagNameNS(BED_NS, tagName);
-    if (out && out.length > 0) {
-      return out.item(0);
-    } else {
-      return undefined;
-    }
-  }
-
-  _grabFirstElText(xml: Element | null | void, tagName: string) :string | void {
-    let out = this._grabFirstEl(xml, tagName);
-    if (out) {
-      return out.textContent;
-    }
-    return undefined;
-  }
-
-  _grabFirstElFloat(xml: Element | null | void, tagName: string) :number | void {
-    let out = this._grabFirstElText(xml, tagName);
-    if (out) {
-      out = parseFloat(out);
-    }
-    return undefined;
-  }
-
-  _grabAttribute(xml: Element | null | void, tagName: string) :string | void {
-    if ( ! xml) { return undefined;}
-    let a = xml.getAttribute(tagName);
-    if (a === null || typeof a === "undefined") {
-      return undefined;
-    }
-    return a;
-  }
-  _grabAttributeNS(xml: Element | null | void, namespace: string, tagName: string) :string | void {
-    if ( ! xml) { return undefined;}
-    let a = xml.getAttributeNS(namespace, tagName);
-    if (a === null || typeof a === "undefined") {
-      return undefined;
-    }
-    return a;
-  }
 }
