@@ -584,6 +584,7 @@ console.log("204 nodata so return empty xml");
         }
       }
     }
+    if (util._isDef(this._nodata)) { url = url+this.makeParam("nodata", this.nodata());}
     if (url.endsWith('&') || url.endsWith('?')) {
       url = url.substr(0, url.length-1); // zap last & or ?
     }

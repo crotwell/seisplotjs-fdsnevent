@@ -11,10 +11,52 @@ test( "query setter test", () => {
 
 
 test( "form url test", () => {
-  let eventQuery = new fdsnevent.EventQuery();
+  let query = new fdsnevent.EventQuery();
   const MINMAG = 5.5;
-  eventQuery.minMag(MINMAG);
-  expect(eventQuery.formURL()).toEqual("http://earthquake.usgs.gov/fdsnws/event/1/query?minmag=5.5");
+  const START = moment.utc("2018-01-01");
+  const END = moment.utc("2018-01-11");
+  const IRIS_HOST = "service.iris.edu";
+  expect(query.host(IRIS_HOST)).toBe(query);
+  expect(query.host()).toBe(IRIS_HOST);
+  expect(query.startTime(START)).toBe(query);
+  expect(query.startTime()).toBe(START);
+  expect(query.endTime(END)).toBe(query);
+  expect(query.endTime()).toBe(END);
+  expect(query.minMag(MINMAG)).toBe(query);
+  expect(query.minMag()).toBe(MINMAG);
+  expect(query.minMag(MINMAG)).toBe(query);
+  expect(query.minMag()).toBe(MINMAG);
+
+  expect(query.minLat(12)).toBe(query);
+  expect(query.minLat()).toBe(12);
+  expect(query.maxLat(12)).toBe(query);
+  expect(query.maxLat()).toBe(12);
+  expect(query.minLon(12)).toBe(query);
+  expect(query.minLon()).toBe(12);
+  expect(query.maxLon(12)).toBe(query);
+  expect(query.maxLon()).toBe(12);
+  expect(query.latitude(12)).toBe(query);
+  expect(query.latitude()).toBe(12);
+  expect(query.longitude(12)).toBe(query);
+  expect(query.longitude()).toBe(12);
+  expect(query.minRadius(12)).toBe(query);
+  expect(query.minRadius()).toBe(12);
+  expect(query.maxRadius(12)).toBe(query);
+  expect(query.maxRadius()).toBe(12);
+  expect(query.includearrivals(true)).toBe(query);
+  expect(query.includearrivals()).toBe(true);
+  expect(query.nodata(404)).toBe(query);
+  expect(query.nodata()).toEqual(404);
+  const url = query.formURL();
+  expect(url).toBeDefined();
+  // starttime is first, so no &
+  expect(url).toContain('?starttime=');
+  for(const k of ['endtime',
+   'minlat', 'maxlat', 'minlon', 'maxlon', 'latitude', 'longitude', 'minradius', 'maxradius',
+   'includearrivals', 'nodata']) {
+     expect(url).toContain('&'+k+'=');
+  }
+  expect(query.formURL()).toContain("http://service.iris.edu/fdsnws/event/1/query?");
 });
 
 
