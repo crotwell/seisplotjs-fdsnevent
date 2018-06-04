@@ -157,9 +157,9 @@ export class EventQuery {
   }
   maxMag(value?: number): number | EventQuery {
     if (hasNoArgs(value)) {
-      return this._minMag;
+      return this._maxMag;
     } else if (isNumArg(value)) {
-      this._minMag = value;
+      this._maxMag = value;
       return this;
     } else {
       throw new Error('value argument is optional or number, but was '+typeof value);
@@ -279,7 +279,7 @@ export class EventQuery {
     for (let mNum=0; mNum < allMagEls.length; mNum++) {
       allMags.push(this.convertToMagnitude(allMagEls.item(mNum)));
     }
-    if (allMags.length > 0) {out.magnitude = allMags[0];}
+    if (allMags.length > 0) {out.magnitude(allMags[0]);}
     let allPickEls = qml.getElementsByTagNameNS(BED_NS, 'pick');
     let allPicks = [];
     for (let pNum=0; pNum < allPickEls.length; pNum++) {
@@ -336,12 +336,12 @@ export class EventQuery {
     return out;
   }
   convertToMagnitude(qml: Element) :model.Magnitude {
-    let mag = util._grabFirstElFloat(util._grabFirstEl(qml, 'mag'), 'value');
+    let mag = util._grabFirstElFloat(util._grabFirstElNS(qml, BED_NS, 'mag'), 'value');
     let type = util._grabFirstElText(qml, 'type');
     if (mag && type) {
       return new model.Magnitude(mag, type);
     }
-    throw new Error("Did not find mag and type in Element: ");
+    throw new Error("Did not find mag and type in Element: "+mag +" "+ type);
   }
   convertToArrival(arrivalQML: Element, allPicks: Array<model.Pick>) :model.Arrival {
     let pickID = util._grabFirstElText(arrivalQML, 'pickID');
@@ -553,8 +553,8 @@ console.log("204 nodata so return empty xml");
     }
     let url = this.formBaseURL()+"/query?";
     if (this._eventid) { url = url+this.makeParam("eventid", this.eventid());}
-    if (this._startTime) { url = url+this.makeParam("starttime", util._toIsoWoZ(this.startTime()));}
-    if (this._endTime) { url = url+this.makeParam("endtime", util._toIsoWoZ(this.endTime()));}
+    if (this._startTime) { url = url+this.makeParam("starttime", model.toIsoWoZ(this.startTime()));}
+    if (this._endTime) { url = url+this.makeParam("endtime", model.toIsoWoZ(this.endTime()));}
     if (util._isDef(this._minMag)) { url = url+this.makeParam("minmag", this.minMag());}
     if (util._isDef(this._maxMag)) { url = url+this.makeParam("maxmag", this.maxMag());}
     if (util._isDef(this._minLat)) { url = url+this.makeParam("minlat", this.minLat());}
