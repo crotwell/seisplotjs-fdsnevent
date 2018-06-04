@@ -32,7 +32,7 @@ quakeQuery.query().then(function(quakes) {
   }
   var tableData = table.select("tbody")
     .selectAll("tr")
-    .data(quakes, function(d) {return d.time();});
+    .data(quakes);
   tableData.exit().remove();
 
   var tr = tableData
