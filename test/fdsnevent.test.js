@@ -16,6 +16,7 @@ test( "form url test", () => {
   const START = moment.utc("2018-01-01");
   const END = moment.utc("2018-01-11");
   const IRIS_HOST = "service.iris.edu";
+  const MAG_TYPE = "mw";
   expect(query.host(IRIS_HOST)).toBe(query);
   expect(query.host()).toBe(IRIS_HOST);
   expect(query.startTime(START)).toBe(query);
@@ -24,8 +25,10 @@ test( "form url test", () => {
   expect(query.endTime()).toBe(END);
   expect(query.minMag(MINMAG)).toBe(query);
   expect(query.minMag()).toBe(MINMAG);
-  expect(query.minMag(MINMAG)).toBe(query);
-  expect(query.minMag()).toBe(MINMAG);
+  expect(query.maxMag(MINMAG)).toBe(query);
+  expect(query.maxMag()).toBe(MINMAG);
+  expect(query.magnitudeType(MAG_TYPE)).toBe(query);
+  expect(query.magnitudeType()).toBe(MAG_TYPE);
 
   expect(query.minLat(12)).toBe(query);
   expect(query.minLat()).toBe(12);
@@ -51,7 +54,7 @@ test( "form url test", () => {
   expect(url).toBeDefined();
   // starttime is first, so no &
   expect(url).toContain('?starttime=');
-  for(const k of ['endtime',
+  for(const k of ['endtime','minmag', 'maxmag', 'magnitudetype',
    'minlat', 'maxlat', 'minlon', 'maxlon', 'latitude', 'longitude', 'minradius', 'maxradius',
    'includearrivals', 'nodata']) {
      expect(url).toContain('&'+k+'=');

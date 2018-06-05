@@ -47,6 +47,8 @@ export class EventQuery {
   /** @private */
   _maxMag: number;
   /** @private */
+  _magnitudeType: string;
+  /** @private */
   _minLat: number;
   /** @private */
   _maxLat: number;
@@ -163,6 +165,16 @@ export class EventQuery {
       return this;
     } else {
       throw new Error('value argument is optional or number, but was '+typeof value);
+    }
+  }
+  magnitudeType(value?: string): string | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._magnitudeType;
+    } else if (isStringArg(value)) {
+      this._magnitudeType = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or string, but was '+typeof value);
     }
   }
   minLat(value?: number): number | EventQuery {
@@ -557,6 +569,7 @@ console.log("204 nodata so return empty xml");
     if (this._endTime) { url = url+this.makeParam("endtime", model.toIsoWoZ(this.endTime()));}
     if (util._isDef(this._minMag)) { url = url+this.makeParam("minmag", this.minMag());}
     if (util._isDef(this._maxMag)) { url = url+this.makeParam("maxmag", this.maxMag());}
+    if (util._isDef(this._magnitudeType)) { url = url+this.makeParam("magnitudetype", this.magnitudeType());}
     if (util._isDef(this._minLat)) { url = url+this.makeParam("minlat", this.minLat());}
     if (util._isDef(this._maxLat)) { url = url+this.makeParam("maxlat", this.maxLat());}
     if (util._isDef(this._minLon)) { url = url+this.makeParam("minlon", this.minLon());}
