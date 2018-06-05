@@ -23,12 +23,19 @@ test( "form url test", () => {
   expect(query.startTime()).toBe(START);
   expect(query.endTime(END)).toBe(query);
   expect(query.endTime()).toBe(END);
+  expect(query.updatedAfter(END)).toBe(query);
+  expect(query.updatedAfter()).toBe(END);
   expect(query.minMag(MINMAG)).toBe(query);
   expect(query.minMag()).toBe(MINMAG);
   expect(query.maxMag(MINMAG)).toBe(query);
   expect(query.maxMag()).toBe(MINMAG);
   expect(query.magnitudeType(MAG_TYPE)).toBe(query);
   expect(query.magnitudeType()).toBe(MAG_TYPE);
+
+  expect(query.minDepth(MINMAG)).toBe(query);
+  expect(query.minDepth()).toBe(MINMAG);
+  expect(query.maxDepth(MINMAG)).toBe(query);
+  expect(query.maxDepth()).toBe(MINMAG);
 
   expect(query.minLat(12)).toBe(query);
   expect(query.minLat()).toBe(12);
@@ -46,18 +53,44 @@ test( "form url test", () => {
   expect(query.minRadius()).toBe(12);
   expect(query.maxRadius(12)).toBe(query);
   expect(query.maxRadius()).toBe(12);
-  expect(query.includearrivals(true)).toBe(query);
-  expect(query.includearrivals()).toBe(true);
+  expect(query.includeArrivals(true)).toBe(query);
+  expect(query.includeArrivals()).toBe(true);
+  expect(query.includeAllOrigins(true)).toBe(query);
+  expect(query.includeAllOrigins()).toBe(true);
+  expect(query.includeAllMagnitudes(true)).toBe(query);
+  expect(query.includeAllMagnitudes()).toBe(true);
+  expect(query.updatedAfter(END)).toBe(query);
+  expect(query.updatedAfter()).toBe(END);
+  expect(query.format("miniseed")).toBe(query);
+  expect(query.format()).toEqual("miniseed");
+  expect(query.eventid("event7")).toBe(query);
+  expect(query.eventid()).toEqual("event7");
+  expect(query.limit(10)).toBe(query);
+  expect(query.limit()).toEqual(10);
+  expect(query.offset(40)).toBe(query);
+  expect(query.offset()).toEqual(40);
+  expect(query.orderBy("time-asc")).toBe(query);
+  expect(query.orderBy()).toEqual("time-asc");
+  expect(query.contributor("somebody")).toBe(query);
+  expect(query.contributor()).toEqual("somebody");
+  expect(query.catalog("someCatalog")).toBe(query);
+  expect(query.catalog()).toEqual("someCatalog");
   expect(query.nodata(404)).toBe(query);
   expect(query.nodata()).toEqual(404);
   const url = query.formURL();
   expect(url).toBeDefined();
-  // starttime is first, so no &
-  expect(url).toContain('?starttime=');
-  for(const k of ['endtime','minmag', 'maxmag', 'magnitudetype',
-   'minlat', 'maxlat', 'minlon', 'maxlon', 'latitude', 'longitude', 'minradius', 'maxradius',
-   'includearrivals', 'nodata']) {
-     expect(url).toContain('&'+k+'=');
+  // eventid is first, so no &
+  expect(url).toContain('?eventid=');
+  for(const k of ['starttime', 'endtime', 'updatedafter',
+      'minmag', 'maxmag', 'magnitudetype',
+      'mindepth', 'maxdepth',
+      'minlat', 'maxlat', 'minlon', 'maxlon',
+      'latitude', 'longitude', 'minradius', 'maxradius',
+      'includearrivals', 'includeallorigins', 'includeallmagnitudes',
+      'orderby', 'offset', 'limit',
+      'catalog', 'contributor',
+      'updatedafter', 'format', 'nodata']) {
+    expect(url).toContain('&'+k+'=');
   }
   expect(query.formURL()).toContain("http://service.iris.edu/fdsnws/event/1/query?");
 });

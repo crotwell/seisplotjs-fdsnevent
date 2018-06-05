@@ -43,11 +43,17 @@ export class EventQuery {
   /** @private */
   _endTime: moment;
   /** @private */
+  _updatedAfter: moment;
+  /** @private */
   _minMag: number;
   /** @private */
   _maxMag: number;
   /** @private */
   _magnitudeType: string;
+  /** @private */
+  _minDepth: number;
+  /** @private */
+  _maxDepth: number;
   /** @private */
   _minLat: number;
   /** @private */
@@ -65,7 +71,25 @@ export class EventQuery {
   /** @private */
   _maxRadius: number;
   /** @private */
-  _includearrivals: boolean;
+  _includeArrivals: boolean;
+  /** @private */
+  _includeAllOrigins: boolean;
+  /** @private */
+  _includeAllMagnitudes: boolean;
+  /** @private */
+  _eventid: string;
+  /** @private */
+  _limit: number;
+  /** @private */
+  _offset: number;
+  /** @private */
+  _orderBy: string;
+  /** @private */
+  _contributor: string;
+  /** @private */
+  _catalog: string;
+  /** @private */
+  _format: string;
   constructor(host?: string) {
     this._specVersion = 1;
     this._protocol = 'http:';
@@ -147,6 +171,16 @@ export class EventQuery {
       throw new Error('value argument is optional or moment or string, but was '+typeof value);
     }
   }
+  updatedAfter(value?: moment) :moment | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._updatedAfter;
+    } else if (hasArgs(value)) {
+      this._updatedAfter = checkStringOrDate(value);
+      return this;
+    } else {
+      throw new Error('value argument is optional or moment or string, but was '+typeof value);
+    }
+  }
   minMag(value?: number): number | EventQuery {
     if (hasNoArgs(value)) {
       return this._minMag;
@@ -175,6 +209,26 @@ export class EventQuery {
       return this;
     } else {
       throw new Error('value argument is optional or string, but was '+typeof value);
+    }
+  }
+  minDepth(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._minDepth;
+    } else if (isNumArg(value)) {
+      this._minDepth = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
+  }
+  maxDepth(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._maxDepth;
+    } else if (isNumArg(value)) {
+      this._maxDepth = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
     }
   }
   minLat(value?: number): number | EventQuery {
@@ -257,14 +311,98 @@ export class EventQuery {
       throw new Error('value argument is optional or number, but was '+typeof value);
     }
   }
+  /* @deprecated */
   includearrivals(value?: boolean): boolean | EventQuery {
+    return this.includeArrivals(value);
+  }
+  includeArrivals(value?: boolean): boolean | EventQuery {
     if (hasNoArgs(value)) {
-      return this._includearrivals;
+      return this._includeArrivals;
     } else if (hasArgs(value)) {
-      this._includearrivals = value;
+      this._includeArrivals = value;
       return this;
     } else {
       throw new Error('value argument is optional or boolean, but was '+typeof value);
+    }
+  }
+  includeAllOrigins(value?: boolean): boolean | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._includeAllOrigins;
+    } else if (hasArgs(value)) {
+      this._includeAllOrigins = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or boolean, but was '+typeof value);
+    }
+  }
+  includeAllMagnitudes(value?: boolean): boolean | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._includeAllMagnitudes;
+    } else if (hasArgs(value)) {
+      this._includeAllMagnitudes = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or boolean, but was '+typeof value);
+    }
+  }
+  format(value?: string): string | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._format;
+    } else if (isStringArg(value)) {
+      this._format = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or string, but was '+typeof value);
+    }
+  }
+  limit(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._limit;
+    } else if (isNumArg(value)) {
+      this._limit = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
+  }
+  offset(value?: number): number | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._offset;
+    } else if (isNumArg(value)) {
+      this._offset = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or number, but was '+typeof value);
+    }
+  }
+  orderBy(value?: string): string | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._orderBy;
+    } else if (isStringArg(value)) {
+      this._orderBy = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or string, but was '+typeof value);
+    }
+  }
+  catalog(value?: string): string | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._catalog;
+    } else if (isStringArg(value)) {
+      this._catalog = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or string, but was '+typeof value);
+    }
+  }
+  contributor(value?: string): string | EventQuery {
+    if (hasNoArgs(value)) {
+      return this._contributor;
+    } else if (isStringArg(value)) {
+      this._contributor = value;
+      return this;
+    } else {
+      throw new Error('value argument is optional or string, but was '+typeof value);
     }
   }
 
@@ -570,6 +708,8 @@ console.log("204 nodata so return empty xml");
     if (util._isDef(this._minMag)) { url = url+this.makeParam("minmag", this.minMag());}
     if (util._isDef(this._maxMag)) { url = url+this.makeParam("maxmag", this.maxMag());}
     if (util._isDef(this._magnitudeType)) { url = url+this.makeParam("magnitudetype", this.magnitudeType());}
+    if (util._isDef(this._minDepth)) { url = url+this.makeParam("mindepth", this.minDepth());}
+    if (util._isDef(this._maxDepth)) { url = url+this.makeParam("maxdepth", this.maxDepth());}
     if (util._isDef(this._minLat)) { url = url+this.makeParam("minlat", this.minLat());}
     if (util._isDef(this._maxLat)) { url = url+this.makeParam("maxlat", this.maxLat());}
     if (util._isDef(this._minLon)) { url = url+this.makeParam("minlon", this.minLon());}
@@ -584,7 +724,7 @@ console.log("204 nodata so return empty xml");
         throw new Error("Cannot use minRadius or maxRadius without latitude and longitude: lat="+this._latitude+" lon="+this._longitude);
       }
     }
-    if (this._includearrivals) {
+    if (this._includeArrivals) {
       if (this._host != USGS_HOST) {
         url = url+"includearrivals=true&";
       } else {
@@ -597,6 +737,16 @@ console.log("204 nodata so return empty xml");
         }
       }
     }
+    if (util._isDef(this._updatedAfter)) { url = url+this.makeParam("updatedafter", this.updatedAfter());}
+    if (util._isDef(this._includeAllOrigins)) { url = url+this.makeParam("includeallorigins", this.includeAllOrigins());}
+    if (util._isDef(this._includeAllMagnitudes)) { url = url+this.makeParam("includeallmagnitudes", this.includeAllMagnitudes());}
+    if (util._isDef(this._format)) { url = url+this.makeParam("format", this.format());}
+    if (util._isDef(this._limit)) { url = url+this.makeParam("limit", this.limit());}
+    if (util._isDef(this._offset)) { url = url+this.makeParam("offset", this.offset());}
+    if (util._isDef(this._orderBy)) { url = url+this.makeParam("orderby", this.orderBy());}
+    if (util._isDef(this._catalog)) { url = url+this.makeParam("catalog", this.catalog());}
+    if (util._isDef(this._contributor)) { url = url+this.makeParam("contributor", this.contributor());}
+
     if (util._isDef(this._nodata)) { url = url+this.makeParam("nodata", this.nodata());}
     if (url.endsWith('&') || url.endsWith('?')) {
       url = url.substr(0, url.length-1); // zap last & or ?
