@@ -514,7 +514,9 @@ export class EventQuery {
     let stationCode = util._grabAttribute(waveformIDEl, "stationCode");
     let locationCode = util._grabAttribute(waveformIDEl, "locationCode");
     let channelCode = util._grabAttribute(waveformIDEl, "channelCode");
-    if (! netCode || ! stationCode || ! locationCode || ! channelCode) {
+    // handle empty loc code, it can be missing
+    if ( ! locationCode) { locationCode = '';}
+    if (! netCode || ! stationCode || ! channelCode) {
       throw new Error("missing codes: "+stringify(netCode)
                       +"."+ stringify(stationCode)
                       +"."+ stringify(locationCode)
